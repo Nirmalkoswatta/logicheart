@@ -11,6 +11,8 @@
 .register-background {
   width: 100%;
   height: 100%;
+  background: url('../background.png') no-repeat center center fixed;
+  background-size: cover;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -28,24 +30,25 @@
 }
 
 .register-card {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(0, 0, 0, 0.3);
   backdrop-filter: blur(10px);
   border-radius: 20px;
   padding: 40px 50px;
   width: 400px;
   box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-  border: 1px solid rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   position: relative;
   z-index: 1;
 }
 
 .register-title {
   text-align: center;
-  color: black;
+  color: #fff;
   font-size: 32px;
   font-weight: 600;
   margin-bottom: 30px;
   letter-spacing: 2px;
+  animation: fadeInDown 1s ease-out;
 }
 
 .input-group {
@@ -123,4 +126,15 @@
 
 .login-text:hover {
   color: #f0f0f0;
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

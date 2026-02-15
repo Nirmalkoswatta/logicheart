@@ -25,8 +25,9 @@ const Login = () => {
   return (
     <div className="login-container">
       <div className="login-background">
+        <h1 className="main-header">Logic Heart</h1>
         <div className="login-card">
-          <h1 className="login-title">LOGIN</h1>
+          <h1 className="login-title">Login</h1>
           <form onSubmit={handleSubmit}>
             <div className="input-group">
               <input

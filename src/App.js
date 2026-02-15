@@ -1,9 +1,10 @@
-import React from 'react';
+import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Home from './pages/Home';
+import LoadingScreen from './components/LoadingScreen';
 import './App.scss';
 
 // Protected Route Component
@@ -19,6 +20,12 @@ const PublicRoute = ({ children }) => {
 };
 
 function App() {
+  const [loading, setLoading] = useState(true);
+
+  if (loading) {
+    return <LoadingScreen onLoaded={() => setLoading(false)} />;
+  }
+
   return (
     <Router>
       <Routes>

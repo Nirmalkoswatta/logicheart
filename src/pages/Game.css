@@ -344,3 +344,37 @@
   background: rgba(255, 255, 255, 0.1);
   color: white;
 }
+
+/* Timer Display Styles */
+.timer-display {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.2rem;
+  font-weight: bold;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.timer-display.safe {
+  background: rgba(45, 206, 137, 0.1);
+  color: #2dce89;
+}
+
+.timer-display.warning {
+  background: rgba(251, 176, 59, 0.1);
+  color: #fbb03b;
+}
+
+.timer-display.danger {
+  background: rgba(245, 54, 92, 0.1);
+  color: #f5365c;
+  animation: pulse 0.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+

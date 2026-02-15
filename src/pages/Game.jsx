@@ -20,12 +20,14 @@ const Game = () => {
     
     const [loading, setLoading] = useState(true);
     const [feedback, setFeedback] = useState(null); // { type: 'success' | 'error', message: string }
+    const [timeLeft, setTimeLeft] = useState(30); // Timer in seconds
 
     const fetchQuestion = async () => {
         setLoading(true);
         setFeedback(null);
         setInputCarrots('');
         setInputHearts('');
+        setTimeLeft(30); // Reset timer for new question
         try {
             const response = await axios.get('http://localhost:5001/api/game/question');
             // The API returns { question: "http://...", solution: 123, carrots: 5 }
@@ -50,6 +52,32 @@ const Game = () => {
         }
         fetchQuestion();
     }, [currentUser, navigate]);
+
+    // Countdown timer effect
+    useEffect(() => {
+        if (loading || !questionImage || (feedback && feedback.type === 'success')) return;
+        
+        const timer = setInterval(() => {
+            setTimeLeft(prev => {
+                if (prev <= 1) {
+                    clearInterval(timer);
+                    handleTimeout();
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+        
+        return () => clearInterval(timer);
+    }, [questionImage, loading, feedback]);
+
+    const handleTimeout = () => {
+        setFeedback({ type: 'error', message: "Time's up!" });
+        dispatch(reduceAttempts(currentUser._id));
+        setTimeout(() => {
+            fetchQuestion();
+        }, 1500);
+    };
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -131,6 +159,10 @@ const Game = () => {
                         <div className="stat-item">
                             <span className="stat-label">Attempts</span>
                             <span className="stat-value">{currentUser.attempts}</span>
+                        </div>
+                        <div className={`timer-display ${timeLeft > 20 ? 'safe' : timeLeft > 10 ? 'warning' : 'danger'}`}>
+                            <span>⏱️</span>
+                            <span>{timeLeft}s</span>
                         </div>
                     </div>
                 </header>

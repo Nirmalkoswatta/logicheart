@@ -31,7 +31,7 @@ const Register = () => {
     dispatch(clearError());
     const result = await dispatch(registerUser({ username: formData.name, email: formData.email, password: formData.password }));
     if (result.meta.requestStatus === 'fulfilled') {
-      navigate('/home');
+      navigate('/verify-otp', { state: { email: formData.email } });
     }
   };
 

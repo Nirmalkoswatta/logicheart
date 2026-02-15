@@ -1,73 +1,156 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const asyncHandler = require('express-async-handler');
+const { sendOTP } = require('../utils/emailService');
 
-// @desc    Register a new user
-// @route   POST /api/users/register
+// Generate JWT
+const generateToken = (id) => {
+  return jwt.sign({ id }, process.env.JWT_SECRET || 'secret123', {
+    expiresIn: '30d',
+  });
+};
+
+// @desc    Register new user & Send OTP
+// @route   POST /api/users
 // @access  Public
-router.post('/register', async (req, res) => {
-  try {
+router.post(
+  '/',
+  asyncHandler(async (req, res) => {
     const { username, email, password } = req.body;
+
+    if (!username || !email || !password) {
+      res.status(400);
+      throw new Error('Please add all fields');
+    }
 
     // Check if user exists
     const userExists = await User.findOne({ email });
+
     if (userExists) {
-      return res.status(400).json({ message: 'User already exists' });
+      res.status(400);
+      throw new Error('User already exists');
     }
+
+    // Hash password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Generate OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
 
     // Create user
     const user = await User.create({
       username,
       email,
-      password,
+      password: hashedPassword,
+      otp,
+      otpExpires,
+      isVerified: false,
     });
 
     if (user) {
+      // Send OTP Email
+      await sendOTP(user.email, otp);
+
       res.status(201).json({
-        _id: user._id,
+        _id: user.id,
         username: user.username,
         email: user.email,
-        email: user.email,
-        score: user.score,
-        attempts: user.attempts,
-        carrots: user.carrots,
-        hearts: user.hearts,
+        message: 'Registration successful. OTP sent to email.',
       });
     } else {
-      res.status(400).json({ message: 'Invalid user data' });
+      res.status(400);
+      throw new Error('Invalid user data');
     }
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
+  })
+);
 
-// @desc    Login user
+// @desc    Verify OTP
+// @route   POST /api/users/verify-otp
+// @access  Public
+router.post(
+  '/verify-otp',
+  asyncHandler(async (req, res) => {
+    const { email, otp } = req.body;
+    
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      res.status(400);
+      throw new Error('User not found');
+    }
+
+    if (user.isVerified) {
+        res.status(200).json({
+            _id: user.id,
+            username: user.username,
+            email: user.email,
+            token: generateToken(user._id),
+            carrots: user.carrots || 0,
+            hearts: user.hearts || 0,
+            message: 'User already verified'
+        });
+        return;
+    }
+
+    if (user.otp === otp && user.otpExpires > Date.now()) {
+      user.isVerified = true;
+      user.otp = undefined;
+      user.otpExpires = undefined;
+      await user.save();
+
+      res.json({
+        _id: user.id,
+        username: user.username,
+        email: user.email,
+        token: generateToken(user._id),
+        carrots: user.carrots || 0,
+        hearts: user.hearts || 0,
+      });
+    } else {
+      res.status(400);
+      throw new Error('Invalid or expired OTP');
+    }
+  })
+);
+
+// @desc    Authenticate a user
 // @route   POST /api/users/login
 // @access  Public
-router.post('/login', async (req, res) => {
-  try {
+router.post(
+  '/login',
+  asyncHandler(async (req, res) => {
     const { email, password } = req.body;
 
     // Check for user email
     const user = await User.findOne({ email });
 
-    if (user && (user.password === password)) {
+    if (user && (await bcrypt.compare(password, user.password))) {
+      if (!user.isVerified) {
+        // Optional: Resend OTP here if you want
+        res.status(401);
+        throw new Error('Please verify your email first.');
+      }
+
       res.json({
-        _id: user._id,
+        _id: user.id,
         username: user.username,
         email: user.email,
-        score: user.score,
-        attempts: user.attempts,
+        token: generateToken(user._id),
         carrots: user.carrots || 0,
         hearts: user.hearts || 0,
+        isAdmin: user.isAdmin,
       });
     } else {
-      res.status(401).json({ message: 'Invalid email or password' });
+      res.status(400);
+      throw new Error('Invalid credentials');
     }
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
+  })
+);
 
 // @desc    Reset user stats (Game Over -> Restart)
 // @route   PUT /api/users/:id/reset

@@ -10,13 +10,26 @@ export const registerUser = createAsyncThunk(
   'user/register',
   async (userData, { rejectWithValue }) => {
     try {
-      // POST /api/users/register
-      const response = await axios.post(`${API_URL}/register`, userData);
-      // Save user to local storage if needed, or just return data
+      // POST /api/users
+      const response = await axios.post(`${API_URL}`, userData);
+      // Do NOT save to local storage yet, because they are not verified
+      return response.data; 
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Registration failed');
+    }
+  }
+);
+
+// Verify OTP
+export const verifyUser = createAsyncThunk(
+  'user/verify',
+  async ({ email, otp }, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(`${API_URL}/verify-otp`, { email, otp });
       localStorage.setItem('user', JSON.stringify(response.data));
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Registration failed');
+      return rejectWithValue(error.response?.data?.message || 'Verification failed');
     }
   }
 );
@@ -146,7 +159,23 @@ const userSlice = createSlice({
     }
   },
   extraReducers: (builder) => {
-    userHelpers(builder, registerUser);
+    // Explicitly handle registerUser to avoid logging in immediately
+    builder
+      .addCase(registerUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(registerUser.fulfilled, (state) => {
+        state.loading = false;
+        // Do not set currentUser
+        state.error = null;
+      })
+      .addCase(registerUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      });
+
+    userHelpers(builder, verifyUser);
     userHelpers(builder, loginUser);
     userHelpers(builder, fetchUser);
     userHelpers(builder, updateScore);

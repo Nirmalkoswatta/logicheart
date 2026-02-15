@@ -7,7 +7,8 @@
   overflow: hidden;
   color: #333;
   font-family: 'Poppins', sans-serif;
-  background: #fdfbf7; /* Pastel off-white/cream */
+  font-family: 'Poppins', sans-serif;
+  background: transparent;
 }
 
 /* Background handled globally in index.css */
@@ -16,9 +17,9 @@
 /* Header */
 .dashboard-header {
   padding: 1rem 2rem;
-  background: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.2); /* 80% transparent */
   backdrop-filter: blur(10px);
-  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05); /* Subtle shadow for separation */
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -77,6 +78,7 @@
   background: transparent;
   color: #8898aa;
   font-weight: 600;
+  font-size: 1.2rem;
   cursor: pointer;
   position: relative;
   transition: color 0.3s;

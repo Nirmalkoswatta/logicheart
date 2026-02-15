@@ -1,0 +1,35 @@
+@import './variables';
+
+.App {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  color: black;
+
+  .text {
+    color: black;
+  }
+
+  .border {
+    border: 1px solid black;
+  }
+
+  .button {
+    color: black;
+    border: 1px solid black;
+    background: transparent;
+    &:hover {
+      background: #ccc;
+      color: black;
+    }
+  }
+
+  .link {
+    color: black;
+    text-decoration: underline;
+    &:hover {
+      color: gray;
+    }
+  }
+}

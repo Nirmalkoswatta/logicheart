@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { login, setRememberMe } from '../store/authSlice';
+import { loginUser, clearError } from '../redux/userSlice';
 import './Login.css';
 
 const Login = () => {
@@ -9,18 +9,17 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const rememberMe = useSelector((state) => state.auth.rememberMe);
+  const { loading, error } = useSelector((state) => state.user);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Here you would typically validate credentials with an API
-    dispatch(login({ email }));
-    navigate('/home');
+    dispatch(clearError());
+    const result = await dispatch(loginUser({ email, password }));
+    if (result.meta.requestStatus === 'fulfilled') {
+      navigate('/home');
+    }
   };
 
-  const handleRememberMe = (e) => {
-    dispatch(setRememberMe(e.target.checked));
-  };
 
   return (
     <div className="login-container">
@@ -28,6 +27,7 @@ const Login = () => {
         <h1 className="main-header">Logic Heart</h1>
         <div className="login-card">
           <h1 className="login-title">Login</h1>
+          {error && <div className="error-message">{error}</div>}
           <form onSubmit={handleSubmit}>
             <div className="input-group">
               <input
@@ -52,16 +52,6 @@ const Login = () => {
               />
               <span className="input-icon">🔒</span>
               <a href="#" className="forgot-password">Forgot Password?</a>
-            </div>
-
-            <div className="remember-me">
-              <input
-                type="checkbox"
-                id="rememberMe"
-                checked={rememberMe}
-                onChange={handleRememberMe}
-              />
-              <label htmlFor="rememberMe">Remember Me</label>
             </div>
 
             <button type="submit" className="login-button">Login</button>

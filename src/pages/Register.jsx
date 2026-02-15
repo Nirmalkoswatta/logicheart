@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
-import { login } from '../store/authSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import { registerUser, clearError } from '../redux/userSlice';
 import './Register.css';
 
 const Register = () => {
@@ -13,6 +13,7 @@ const Register = () => {
   });
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { loading, error } = useSelector((state) => state.user);
 
   const handleChange = (e) => {
     setFormData({
@@ -21,15 +22,17 @@ const Register = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (formData.password !== formData.confirmPassword) {
       alert('Passwords do not match!');
       return;
     }
-    // Here you would typically register the user with an API
-    dispatch(login({ email: formData.email, name: formData.name }));
-    navigate('/home');
+    dispatch(clearError());
+    const result = await dispatch(registerUser({ username: formData.name, email: formData.email, password: formData.password }));
+    if (result.meta.requestStatus === 'fulfilled') {
+      navigate('/home');
+    }
   };
 
   return (
@@ -37,6 +40,7 @@ const Register = () => {
       <div className="register-background">
         <div className="register-card">
           <h1 className="register-title">REGISTER</h1>
+          {error && <div className="error-message">{error.message || error}</div>}
           <form onSubmit={handleSubmit}>
             <div className="input-group">
               <input

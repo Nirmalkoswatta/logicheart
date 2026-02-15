@@ -138,3 +138,13 @@
     transform: translateY(0);
   }
 }
+
+.error-message {
+  background: rgba(255, 0, 0, 0.2);
+  color: #ff4d4d;
+  padding: 10px;
+  border-radius: 5px;
+  margin-bottom: 1rem;
+  text-align: center;
+  border: 1px solid rgba(255, 0, 0, 0.3);
+}

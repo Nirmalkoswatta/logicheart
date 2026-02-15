@@ -4,19 +4,21 @@ import { useSelector } from 'react-redux';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Home from './pages/Home';
+import Game from './pages/Game';
+import Leaderboard from './pages/Leaderboard';
+import Settings from './pages/Settings';
 import LoadingScreen from './components/LoadingScreen';
 import './App.scss';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
-  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
-  return isAuthenticated ? children : <Navigate to="/login" />;
+  const { currentUser } = useSelector((state) => state.user);
+  return currentUser ? children : <Navigate to="/login" />;
 };
 
-// Public Route Component (redirect to home if already authenticated)
+// Public Route Component
 const PublicRoute = ({ children }) => {
-  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
-  return !isAuthenticated ? children : <Navigate to="/home" />;
+  return children;
 };
 
 function App() {
@@ -52,6 +54,30 @@ function App() {
             <ProtectedRoute>
               <Home />
             </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/game"
+          element={
+            <ProtectedRoute>
+              <Game />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/leaderboard"
+          element={
+            <ProtectedRoute>
+              <Leaderboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+             <ProtectedRoute>
+              <Settings />
+             </ProtectedRoute>
           }
         />
       </Routes>

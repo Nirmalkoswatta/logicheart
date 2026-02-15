@@ -1,0 +1,126 @@
+.leaderboard-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  padding: 2rem;
+  background: transparent; /* Use global background */
+  font-family: 'Poppins', sans-serif;
+  color: #333;
+}
+
+.leaderboard-content {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  padding: 3rem;
+  max-width: 900px;
+  width: 100%;
+  animation: fadeIn 0.8s ease-out;
+}
+
+.leaderboard-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.leaderboard-header h1 {
+  font-size: 2.5rem;
+  color: #32325d;
+  margin-bottom: 0.5rem;
+}
+
+.leaderboard-header p {
+  color: #8898aa;
+  font-size: 1.1rem;
+}
+
+.leaderboard-table-container {
+  overflow-x: auto;
+}
+
+.leaderboard-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 10px;
+}
+
+.leaderboard-table th {
+  text-align: left;
+  padding: 1rem;
+  color: #8898aa;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 1px;
+}
+
+.leaderboard-table td {
+  padding: 1.5rem 1rem;
+  background: #f6f9fc;
+  color: #525f7f;
+  font-weight: 600;
+}
+
+.leaderboard-table tr td:first-child {
+  border-top-left-radius: 10px;
+  border-bottom-left-radius: 10px;
+}
+
+.leaderboard-table tr td:last-child {
+  border-top-right-radius: 10px;
+  border-bottom-right-radius: 10px;
+}
+
+.rank-badge {
+  display: inline-block;
+  width: 30px;
+  height: 30px;
+  line-height: 30px;
+  text-align: center;
+  border-radius: 50%;
+  background: #e9ecef;
+  color: #8898aa;
+  font-weight: bold;
+}
+
+.rank-1 .rank-badge {
+  background: #ffd700;
+  color: white;
+}
+
+.rank-2 .rank-badge {
+  background: #c0c0c0;
+  color: white;
+}
+
+.rank-3 .rank-badge {
+  background: #cd7f32;
+  color: white;
+}
+
+.highlight-row td {
+  background: #e3f2fd;
+  border: 2px solid #667eea;
+}
+
+.back-btn {
+  margin-top: 2rem;
+  padding: 10px 20px;
+  background: #f0f2f5;
+  border: none;
+  border-radius: 30px;
+  color: #525f7f;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.back-btn:hover {
+  background: #e9ecef;
+  transform: translateY(-2px);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}

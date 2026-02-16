@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { verifyUser, resetUser } from '../redux/userSlice';
+import { verifyUser, resetUser, resendOtp } from '../redux/userSlice';
+import { toast } from 'react-toastify';
 import './VerifyOTP.css';
 
 const VerifyOTP = () => {
@@ -37,6 +38,19 @@ const VerifyOTP = () => {
         dispatch(verifyUser({ email, otp }));
     };
 
+    const handleResend = async () => {
+        if (!email) {
+            toast.error("Email not found");
+            return;
+        }
+        const result = await dispatch(resendOtp(email));
+        if (result.meta.requestStatus === 'fulfilled') {
+            toast.success("OTP sent successfully!");
+        } else {
+            toast.error(result.payload || "Failed to resend OTP");
+        }
+    };
+
     return (
         <div className="verify-container">
             <div className="verify-box">
@@ -58,6 +72,11 @@ const VerifyOTP = () => {
                     <button type="submit" className="verify-btn" disabled={loading}>
                         {loading ? 'Verifying...' : 'Verify'}
                     </button>
+                    
+                    <button type="button" className="resend-link" onClick={handleResend} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', textDecoration: 'underline', width: '100%', marginTop: '10px' }}>
+                        Didn't receive code? Resend
+                    </button>
+
                     <button type="button" className="back-link" onClick={() => navigate('/login')}>
                         Back to Login
                     </button>

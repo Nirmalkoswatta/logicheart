@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { loginUser, clearError } from '../redux/userSlice';
+import { toast } from 'react-toastify';
 import './Login.css';
 
 const Login = () => {
@@ -17,6 +18,13 @@ const Login = () => {
     const result = await dispatch(loginUser({ email, password }));
     if (result.meta.requestStatus === 'fulfilled') {
       navigate('/home');
+    } else if (result.meta.requestStatus === 'rejected') {
+      if (result.payload === 'Please verify your email first.') {
+        toast.info("Please verify your email. Redirecting...");
+        setTimeout(() => navigate('/verify-otp', { state: { email } }), 2000);
+      } else {
+        toast.error(result.payload || "Login failed");
+      }
     }
   };
 

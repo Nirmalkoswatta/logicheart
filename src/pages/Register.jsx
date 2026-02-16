@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { registerUser, clearError } from '../redux/userSlice';
+import { toast } from 'react-toastify';
 import './Register.css';
 
 const Register = () => {
@@ -32,6 +33,8 @@ const Register = () => {
     const result = await dispatch(registerUser({ username: formData.name, email: formData.email, password: formData.password }));
     if (result.meta.requestStatus === 'fulfilled') {
       navigate('/verify-otp', { state: { email: formData.email } });
+    } else if (result.meta.requestStatus === 'rejected') {
+      toast.error(result.payload || "User already exists");
     }
   };
 
@@ -40,7 +43,7 @@ const Register = () => {
       <div className="register-background">
         <div className="register-card">
           <h1 className="register-title">REGISTER</h1>
-          {error && <div className="error-message">{error.message || error}</div>}
+
           <form onSubmit={handleSubmit}>
             <div className="input-group">
               <input

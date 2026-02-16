@@ -118,6 +118,39 @@ router.post(
   })
 );
 
+// @desc    Resend OTP
+// @route   POST /api/users/resend-otp
+// @access  Public
+router.post(
+  '/resend-otp',
+  asyncHandler(async (req, res) => {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      res.status(404);
+      throw new Error('User not found');
+    }
+
+    if (user.isVerified) {
+      res.status(400);
+      throw new Error('User already verified');
+    }
+
+    // Generate new OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+
+    user.otp = otp;
+    user.otpExpires = otpExpires;
+    await user.save();
+
+    await sendOTP(user.email, otp);
+
+    res.json({ message: 'OTP resent successfully' });
+  })
+);
+
 // @desc    Authenticate a user
 // @route   POST /api/users/login
 // @access  Public

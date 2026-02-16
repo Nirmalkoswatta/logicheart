@@ -15,7 +15,7 @@ export const registerUser = createAsyncThunk(
       // Do NOT save to local storage yet, because they are not verified
       return response.data; 
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Registration failed');
+      return rejectWithValue(error.response?.data?.message || 'User already exists');
     }
   }
 );
@@ -30,6 +30,19 @@ export const verifyUser = createAsyncThunk(
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Verification failed');
+    }
+  }
+);
+
+// Resend OTP
+export const resendOtp = createAsyncThunk(
+  'user/resendOtp',
+  async (email, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(`${API_URL}/resend-otp`, { email });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to resend OTP');
     }
   }
 );
@@ -171,6 +184,21 @@ const userSlice = createSlice({
         state.error = null;
       })
       .addCase(registerUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      });
+
+    // Handle resendOtp explicitly
+    builder
+      .addCase(resendOtp.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(resendOtp.fulfilled, (state) => {
+        state.loading = false;
+        state.error = null;
+      })
+      .addCase(resendOtp.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

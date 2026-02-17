@@ -20,7 +20,16 @@ export const registerUser = createAsyncThunk(
     } catch (error) {
       console.error('Registration error:', error);
       console.error('Error response:', error.response?.data);
-      const errorMessage = error.response?.data?.message || error.response?.data?.error || error.message || 'Registration failed';
+      console.error('Error response message:', error.response?.data?.message);
+      console.error('Error response error:', error.response?.data?.error);
+      
+      // Extract the actual error message from the backend
+      const errorMessage = 
+        error.response?.data?.message || 
+        error.response?.data?.error || 
+        error.message || 
+        'Registration failed';
+      
       return rejectWithValue(errorMessage);
     }
   }

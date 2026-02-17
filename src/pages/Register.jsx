@@ -26,19 +26,36 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log('Form submitted');
+    
     if (formData.password !== formData.confirmPassword) {
       alert('Passwords do not match!');
       return;
     }
+    
     dispatch(clearError());
+    console.log('Dispatching registerUser with:', { username: formData.name, email: formData.email });
+    
     const result = await dispatch(registerUser({ username: formData.name, email: formData.email, password: formData.password }));
+    
+    console.log('Registration result:', JSON.stringify(result, null, 2));
+    console.log('Request status:', result.meta.requestStatus);
+    console.log('Result payload:', result.payload);
+    console.log('Result error:', result.error);
+    
     if (result.meta.requestStatus === 'fulfilled') {
+      console.log('Registration successful, navigating to verify-otp');
+      toast.success('Registration successful! Check your email for OTP.');
       navigate('/verify-otp', { state: { email: formData.email } });
     } else if (result.meta.requestStatus === 'rejected') {
       // Show the actual error from the backend
       const errorMessage = result.payload || result.error?.message || "Registration failed";
+      console.error('Registration rejected. Payload:', result.payload);
+      console.error('Error object:', result.error);
       toast.error(errorMessage);
-      console.error('Registration error:', errorMessage);
+    } else {
+      console.warn('Unexpected registration status:', result.meta.requestStatus);
+      toast.error('Unexpected error occurred');
     }
   };
 

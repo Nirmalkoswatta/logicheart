@@ -111,9 +111,6 @@ const Register = () => {
             </div>
           </form>
         </div>
-        <div style={{ textAlign: 'center', marginTop: '10px', color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem' }}>
-          Connecting to: {API_BASE_URL}
-        </div>
       </div>
     </div>
   );

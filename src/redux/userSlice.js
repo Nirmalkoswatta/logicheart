@@ -11,12 +11,17 @@ export const registerUser = createAsyncThunk(
   'user/register',
   async (userData, { rejectWithValue }) => {
     try {
+      console.log('Registering user:', userData);
       // POST /api/users
       const response = await axios.post(`${API_URL}`, userData);
+      console.log('Registration response:', response.data);
       // Do NOT save to local storage yet, because they are not verified
       return response.data; 
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'User already exists');
+      console.error('Registration error:', error);
+      console.error('Error response:', error.response?.data);
+      const errorMessage = error.response?.data?.message || error.response?.data?.error || error.message || 'Registration failed';
+      return rejectWithValue(errorMessage);
     }
   }
 );

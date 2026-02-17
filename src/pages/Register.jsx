@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { registerUser, clearError } from '../redux/userSlice';
 import { toast } from 'react-toastify';
 import './Register.css';
+import { API_BASE_URL } from '../config';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -106,6 +107,9 @@ const Register = () => {
               </span>
             </div>
           </form>
+        </div>
+        <div style={{ textAlign: 'center', marginTop: '10px', color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem' }}>
+          Connecting to: {API_BASE_URL}
         </div>
       </div>
     </div>

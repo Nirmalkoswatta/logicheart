@@ -13,7 +13,10 @@ connectDB();
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: true, // Reflect the request origin
+  credentials: true,
+}));
 app.use(express.json());
 
 // Request logging middleware

@@ -26,8 +26,11 @@ router.post(
       throw new Error('Please add all fields');
     }
 
-    // Check if user exists
-    const userExists = await User.findOne({ email });
+    // Normalize email to lowercase
+    const normalizedEmail = email.toLowerCase().trim();
+
+    // Check if user exists (case-insensitive)
+    const userExists = await User.findOne({ email: normalizedEmail });
 
     if (userExists) {
       res.status(400);
@@ -45,7 +48,7 @@ router.post(
     // Create user
     const user = await User.create({
       username,
-      email,
+      email: normalizedEmail,
       password: hashedPassword,
       otp,
       otpExpires,
@@ -77,7 +80,8 @@ router.post(
   asyncHandler(async (req, res) => {
     const { email, otp } = req.body;
     
-    const user = await User.findOne({ email });
+    const normalizedEmail = email.toLowerCase().trim();
+    const user = await User.findOne({ email: normalizedEmail });
 
     if (!user) {
       res.status(400);
@@ -125,7 +129,8 @@ router.post(
   '/resend-otp',
   asyncHandler(async (req, res) => {
     const { email } = req.body;
-    const user = await User.findOne({ email });
+    const normalizedEmail = email.toLowerCase().trim();
+    const user = await User.findOne({ email: normalizedEmail });
 
     if (!user) {
       res.status(404);
@@ -159,8 +164,11 @@ router.post(
   asyncHandler(async (req, res) => {
     const { email, password } = req.body;
 
+    // Normalize email to lowercase
+    const normalizedEmail = email.toLowerCase().trim();
+    
     // Check for user email
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: normalizedEmail });
 
     if (user && (await bcrypt.compare(password, user.password))) {
       if (!user.isVerified) {

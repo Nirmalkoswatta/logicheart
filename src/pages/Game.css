@@ -378,3 +378,25 @@
   50% { transform: scale(1.05); }
 }
 
+
+.mute-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: transform 0.2s;
+  padding: 5px;
+  border-radius: 50%;
+  display: flex; /* alignment */
+  align-items: center;
+  justify-content: center;
+}
+
+.mute-btn:hover {
+    transform: scale(1.1);
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.mute-btn:active {
+    transform: scale(0.95);
+}

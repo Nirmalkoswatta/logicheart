@@ -1,9 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { updateScore, reduceAttempts, resetGame } from '../redux/userSlice';
 import './Game.css';
+
+// Import Audio Files
+import correctGuessSound from '../assets/correctguess.mp3';
+import gameOverSound from '../assets/Gameover.mp3';
+import backgroundMusic from '../assets/gamebackground.mp3';
 
 const Game = () => {
     const { currentUser } = useSelector((state) => state.user);
@@ -21,6 +26,53 @@ const Game = () => {
     const [loading, setLoading] = useState(true);
     const [feedback, setFeedback] = useState(null); // { type: 'success' | 'error', message: string }
     const [timeLeft, setTimeLeft] = useState(30); // Timer in seconds
+    
+    // Audio State
+    const [isMuted, setIsMuted] = useState(false);
+    const bgMusicRef = useRef(new Audio(backgroundMusic));
+
+    // Initialize Background Music
+    useEffect(() => {
+        const bgMusic = bgMusicRef.current;
+        bgMusic.loop = true;
+        bgMusic.volume = 0.5; // Set a reasonable volume
+
+        const playMusic = async () => {
+            try {
+                if (!isMuted) {
+                    await bgMusic.play();
+                } else {
+                    bgMusic.pause();
+                }
+            } catch (err) {
+                console.warn("Audio play failed (might need user interaction first):", err);
+            }
+        };
+
+        playMusic();
+
+        return () => {
+            bgMusic.pause();
+            bgMusic.currentTime = 0;
+        };
+    }, [isMuted]); // Re-run if mute state changes (or just handle play/pause in separate effect)
+
+    // Handle Mute Toggle Effect specifically
+    useEffect(() => {
+        const bgMusic = bgMusicRef.current;
+        if (isMuted) {
+            bgMusic.pause();
+        } else {
+            bgMusic.play().catch(e => console.log("Playback prevented:", e));
+        }
+    }, [isMuted]);
+
+    const playSoundEffect = (soundFile) => {
+        if (!isMuted) {
+            const audio = new Audio(soundFile);
+            audio.play().catch(e => console.error("Error playing sound effect:", e));
+        }
+    };
 
     const fetchQuestion = async () => {
         setLoading(true);
@@ -73,6 +125,7 @@ const Game = () => {
 
     const handleTimeout = () => {
         setFeedback({ type: 'error', message: "Time's up!" });
+        playSoundEffect(gameOverSound); // Play Game Over Sound
         dispatch(reduceAttempts(currentUser._id));
         setTimeout(() => {
             fetchQuestion();
@@ -87,17 +140,11 @@ const Game = () => {
         const numHearts = parseInt(inputHearts, 10);
 
         // Validation Logic
-        // We strictly validate Carrots because the API gives us that.
-        // We also check if the "Solution" (if available) matches something? 
-        // For now, let's assume if Carrots matches, it's correct (since we don't have Hearts count from API).
         const isCarrotsCorrect = numCarrots === carrotsCount;
-        
-        // Hypothethical validation: If we don't have hearts count, we can't fail them on it.
-        // UNLESS solution = carrots + hearts? Let's check that hypothesis? 
-        // No, let's just stick to what we know.
         
         if (isCarrotsCorrect) {
              setFeedback({ type: 'success', message: 'Correct! Great counting!' });
+             playSoundEffect(correctGuessSound); // Play Correct Guess Sound
              dispatch(updateScore({ 
                  userId: currentUser._id, 
                  points: 10,
@@ -150,7 +197,16 @@ const Game = () => {
         <div className="game-container">
             <div className="game-content">
                 <header className="game-header">
-                    <h2>Logic Heart Puzzle</h2>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <h2>Logic Heart Puzzle</h2>
+                        <button 
+                            onClick={() => setIsMuted(!isMuted)} 
+                            className="mute-btn"
+                            title={isMuted ? "Unmute Music" : "Mute Music"}
+                        >
+                            {isMuted ? '🔇' : '🔊'}
+                        </button>
+                    </div>
                     <div className="game-stats">
                          <div className="stat-item">
                             <span className="stat-label">Score</span>

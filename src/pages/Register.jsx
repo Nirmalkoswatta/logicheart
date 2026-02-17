@@ -35,7 +35,10 @@ const Register = () => {
     if (result.meta.requestStatus === 'fulfilled') {
       navigate('/verify-otp', { state: { email: formData.email } });
     } else if (result.meta.requestStatus === 'rejected') {
-      toast.error(result.payload || "User already exists");
+      // Show the actual error from the backend
+      const errorMessage = result.payload || result.error?.message || "Registration failed";
+      toast.error(errorMessage);
+      console.error('Registration error:', errorMessage);
     }
   };
 

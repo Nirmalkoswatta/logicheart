@@ -19,55 +19,75 @@ const generateToken = (id) => {
 router.post(
   '/',
   asyncHandler(async (req, res) => {
-    const { username, email, password } = req.body;
+    try {
+      const { username, email, password } = req.body;
+      
+      console.log('Registration attempt:', { username, email: email?.toLowerCase() });
 
-    if (!username || !email || !password) {
-      res.status(400);
-      throw new Error('Please add all fields');
-    }
+      if (!username || !email || !password) {
+        res.status(400);
+        throw new Error('Please add all fields');
+      }
 
-    // Normalize email to lowercase
-    const normalizedEmail = email.toLowerCase().trim();
+      // Normalize email to lowercase
+      const normalizedEmail = email.toLowerCase().trim();
 
-    // Check if user exists (case-insensitive)
-    const userExists = await User.findOne({ email: normalizedEmail });
+      // Check if user exists (case-insensitive)
+      const userExists = await User.findOne({ email: normalizedEmail });
+      
+      console.log('User exists check:', { email: normalizedEmail, exists: !!userExists });
 
-    if (userExists) {
-      res.status(400);
-      throw new Error('User already exists');
-    }
+      if (userExists) {
+        res.status(400);
+        throw new Error('User already exists');
+      }
 
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+      // Hash password
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Generate OTP
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const otpExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+      // Generate OTP
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      const otpExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
 
-    // Create user
-    const user = await User.create({
-      username,
-      email: normalizedEmail,
-      password: hashedPassword,
-      otp,
-      otpExpires,
-      isVerified: false,
-    });
+      console.log('Creating user with email:', normalizedEmail);
 
-    if (user) {
-      // Send OTP Email
-      await sendOTP(user.email, otp);
-
-      res.status(201).json({
-        _id: user.id,
-        username: user.username,
-        email: user.email,
-        message: 'Registration successful. OTP sent to email.',
+      // Create user
+      const user = await User.create({
+        username,
+        email: normalizedEmail,
+        password: hashedPassword,
+        otp,
+        otpExpires,
+        isVerified: false,
       });
-    } else {
-      res.status(400);
-      throw new Error('Invalid user data');
+
+      console.log('User created successfully:', user._id);
+
+      if (user) {
+        // Send OTP Email
+        try {
+          await sendOTP(user.email, otp);
+          console.log('OTP sent to:', user.email);
+        } catch (emailError) {
+          console.error('Email sending failed:', emailError.message);
+          // Continue even if email fails - user is created
+        }
+
+        res.status(201).json({
+          _id: user.id,
+          username: user.username,
+          email: user.email,
+          message: 'Registration successful. OTP sent to email.',
+        });
+      } else {
+        res.status(400);
+        throw new Error('Invalid user data');
+      }
+    } catch (error) {
+      console.error('Registration error:', error.message);
+      console.error('Error stack:', error.stack);
+      throw error;
     }
   })
 );

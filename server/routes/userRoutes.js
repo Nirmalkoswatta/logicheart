@@ -79,6 +79,8 @@ router.post(
           username: user.username,
           email: user.email,
           message: 'Registration successful. OTP sent to email.',
+          // TEMPORARY: Include OTP in response for testing (remove in production)
+          otp: otp,
         });
       } else {
         res.status(400);

@@ -27,12 +27,6 @@ const VerifyOTP = () => {
         }
     }, [location, navigate]);
 
-    useEffect(() => {
-        if (currentUser) {
-            navigate('/home');
-        }
-    }, [currentUser, navigate]);
-
     const handleSubmit = (e) => {
         e.preventDefault();
         dispatch(verifyUser({ email, otp }));

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { updateScore, reduceAttempts, resetGame } from '../redux/userSlice';
 import './Game.css';
+import { API_BASE_URL } from '../config';
 
 // Import Audio Files
 import correctGuessSound from '../assets/correctguess.mp3';
@@ -81,7 +82,7 @@ const Game = () => {
         setInputHearts('');
         setTimeLeft(30); // Reset timer for new question
         try {
-            const response = await axios.get('http://localhost:5001/api/game/question');
+            const response = await axios.get(`${API_BASE_URL}/game/question`);
             // The API returns { question: "http://...", solution: 123, carrots: 5 }
             setQuestionImage(response.data.question);
             setSolution(response.data.solution);

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './Leaderboard.css';
+import { API_BASE_URL } from '../config';
 
 const Leaderboard = () => {
   const navigate = useNavigate();
@@ -11,7 +12,7 @@ const Leaderboard = () => {
   useEffect(() => {
     const fetchLeaderboard = async () => {
       try {
-        const response = await axios.get('http://localhost:5001/api/users/leaderboard/top');
+        const response = await axios.get(`${API_BASE_URL}/users/leaderboard/top`);
         setLeaders(response.data);
       } catch (error) {
         console.error('Error fetching leaderboard:', error);

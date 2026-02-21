@@ -43,15 +43,9 @@ const Home = () => {
 
       <div className="dashboard-shell">
         <aside className="dashboard-sidebar" aria-label="Dashboard navigation">
-          <button className="side-item active" type="button" onClick={() => navigate('/')}>
-            Home
-          </button>
-          <button className="side-item side-item--wide" type="button" onClick={() => navigate('/leaderboard')}>
-            Leaderboard
-          </button>
-          <button className="side-item" type="button" onClick={() => navigate('/settings')}>
-            Settings
-          </button>
+          <button className="side-item active" type="button" onClick={() => navigate('/')}>Home</button>
+          <button className="side-item side-item--wide" type="button" onClick={() => navigate('/leaderboard')}>Leaderboard</button>
+          <button className="side-item" type="button" onClick={() => navigate('/settings')}>Settings</button>
         </aside>
 
         <main className="dashboard-main">

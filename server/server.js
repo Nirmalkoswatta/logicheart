@@ -8,7 +8,8 @@ const userRoutes = require('./routes/userRoutes');
 dotenv.config();
 
 // Connect to MongoDB
-connectDB();
+// In serverless (Vercel), avoid connecting at module load time.
+// We'll connect lazily per-request with caching in connectDB().
 
 const app = express();
 
@@ -18,6 +19,20 @@ app.use(cors({
   credentials: true,
 }));
 app.use(express.json());
+
+// Ensure database is connected before handling API routes
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    console.error('Database connection unavailable:', err.message);
+    res.status(500).json({
+      message: 'Database connection unavailable. Check MONGO_URI / MONGODB_URI in environment.',
+      code: '500',
+    });
+  }
+});
 
 // Request logging middleware
 app.use((req, res, next) => {
@@ -40,7 +55,7 @@ app.get('/', (req, res) => {
 app.use((err, req, res, next) => {
   console.error('Error caught by middleware:', err.message);
   console.error('Stack:', err.stack);
-  
+
   const statusCode = res.statusCode !== 200 ? res.statusCode : 500;
   res.status(statusCode);
   res.json({

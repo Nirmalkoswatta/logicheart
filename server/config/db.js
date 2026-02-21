@@ -1,16 +1,28 @@
 const mongoose = require('mongoose');
 
+let cachedPromise;
+
 const connectDB = async () => {
   try {
+    const uri = process.env.MONGO_URI || process.env.MONGODB_URI;
+
     console.log('Attempting to connect to MongoDB...');
     console.log('MONGO_URI exists:', !!process.env.MONGO_URI);
-    console.log('MONGO_URI length:', process.env.MONGO_URI?.length);
-    
-    if (!process.env.MONGO_URI) {
-      throw new Error('MONGO_URI environment variable is not defined');
+    console.log('MONGODB_URI exists:', !!process.env.MONGODB_URI);
+
+    if (mongoose.connection.readyState === 1) {
+      return mongoose.connection;
     }
-    
-    const conn = await mongoose.connect(process.env.MONGO_URI);
+
+    if (!uri) {
+      throw new Error('MongoDB URI is not defined. Set MONGO_URI (or MONGODB_URI on Vercel).');
+    }
+
+    if (!cachedPromise) {
+      cachedPromise = mongoose.connect(uri);
+    }
+
+    const conn = await cachedPromise;
     console.log(`MongoDB Connected: ${conn.connection.host}`);
     return conn;
   } catch (error) {
@@ -22,6 +34,7 @@ const connectDB = async () => {
     } else {
       process.exit(1);
     }
+    cachedPromise = undefined;
     throw error;
   }
 };

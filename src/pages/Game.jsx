@@ -16,18 +16,27 @@ const Game = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
+    const DIFFICULTY_CONFIG = {
+        easy: { label: 'Easy', secondsPerQuestion: 60 },
+        medium: { label: 'Medium', secondsPerQuestion: 45 },
+        hard: { label: 'Hard', secondsPerQuestion: 30 },
+    };
+
     const [questionImage, setQuestionImage] = useState(null);
     const [solution, setSolution] = useState(null);
     const [carrotsCount, setCarrotsCount] = useState(0); // From API
-    
+
     // Inputs
     const [inputCarrots, setInputCarrots] = useState('');
     const [inputHearts, setInputHearts] = useState('');
-    
+
     const [loading, setLoading] = useState(true);
     const [feedback, setFeedback] = useState(null); // { type: 'success' | 'error', message: string }
-    const [timeLeft, setTimeLeft] = useState(30); // Timer in seconds
-    
+    const [difficulty, setDifficulty] = useState(null); // 'easy' | 'medium' | 'hard'
+    const [timeLeft, setTimeLeft] = useState(0); // Timer in seconds
+    const [gameEnded, setGameEnded] = useState(false);
+    const [gameOverReason, setGameOverReason] = useState(null); // 'attempts' | 'timeout'
+
     // Audio State
     const [isMuted, setIsMuted] = useState(false);
     const bgMusicRef = useRef(new Audio(backgroundMusic));
@@ -75,12 +84,15 @@ const Game = () => {
         }
     };
 
-    const fetchQuestion = async () => {
+    const fetchQuestion = async (difficultyOverride = null) => {
+        const effectiveDifficulty = difficultyOverride || difficulty;
+        if (!effectiveDifficulty) return;
+
         setLoading(true);
         setFeedback(null);
         setInputCarrots('');
         setInputHearts('');
-        setTimeLeft(30); // Reset timer for new question
+        setTimeLeft(DIFFICULTY_CONFIG[effectiveDifficulty].secondsPerQuestion);
         try {
             const response = await axios.get(`${API_BASE_URL}/game/question`);
             // The API returns { question: "http://...", solution: 123, carrots: 5 }
@@ -95,21 +107,33 @@ const Game = () => {
         }
     };
 
+    const startGame = (selectedDifficulty) => {
+        setDifficulty(selectedDifficulty);
+        setGameEnded(false);
+        setGameOverReason(null);
+        fetchQuestion(selectedDifficulty);
+    };
+
     useEffect(() => {
         if (!currentUser) {
             navigate('/login');
             return;
         }
         if (currentUser.attempts <= 0) {
-           // Handle Game Over
+            setGameEnded(true);
+            setGameOverReason('attempts');
+            return;
         }
-        fetchQuestion();
-    }, [currentUser, navigate]);
+
+        if (difficulty && !gameEnded) {
+            fetchQuestion();
+        }
+    }, [currentUser, navigate, difficulty, gameEnded]);
 
     // Countdown timer effect
     useEffect(() => {
-        if (loading || !questionImage || (feedback && feedback.type === 'success')) return;
-        
+        if (loading || !questionImage || gameEnded || feedback) return;
+
         const timer = setInterval(() => {
             setTimeLeft(prev => {
                 if (prev <= 1) {
@@ -120,17 +144,29 @@ const Game = () => {
                 return prev - 1;
             });
         }, 1000);
-        
+
         return () => clearInterval(timer);
-    }, [questionImage, loading, feedback]);
+    }, [questionImage, loading, feedback, gameEnded]);
 
     const handleTimeout = () => {
         setFeedback({ type: 'error', message: "Time's up!" });
-        playSoundEffect(gameOverSound); // Play Game Over Sound
-        dispatch(reduceAttempts(currentUser._id));
-        setTimeout(() => {
-            fetchQuestion();
-        }, 1500);
+        setGameEnded(true);
+        setGameOverReason('timeout');
+        playSoundEffect(gameOverSound);
+        try {
+            bgMusicRef.current.pause();
+        } catch {
+            // ignore
+        }
+    };
+
+    const handlePlayAgain = async () => {
+        if (!currentUser) return;
+        await dispatch(resetGame(currentUser._id));
+        setFeedback(null);
+        setGameEnded(false);
+        setGameOverReason(null);
+        fetchQuestion();
     };
 
     const handleSubmit = (e) => {
@@ -142,36 +178,36 @@ const Game = () => {
 
         // Validation Logic
         const isCarrotsCorrect = numCarrots === carrotsCount;
-        
+
         if (isCarrotsCorrect) {
-             setFeedback({ type: 'success', message: 'Correct! Great counting!' });
-             playSoundEffect(correctGuessSound); // Play Correct Guess Sound
-             dispatch(updateScore({ 
-                 userId: currentUser._id, 
-                 points: 10,
-                 carrots: numCarrots,
-                 hearts: numHearts 
-             }));
-             
-             // Load next question
-             setTimeout(() => {
-                 fetchQuestion();
-             }, 1500);
+            setFeedback({ type: 'success', message: 'Correct! Great counting!' });
+            playSoundEffect(correctGuessSound); // Play Correct Guess Sound
+            dispatch(updateScore({
+                userId: currentUser._id,
+                points: 10,
+                carrots: numCarrots,
+                hearts: numHearts
+            }));
+
+            // Load next question
+            setTimeout(() => {
+                fetchQuestion();
+            }, 1500);
         } else {
-             setFeedback({ type: 'error', message: `Incorrect! It was ${carrotsCount} carrots.` });
-             dispatch(reduceAttempts(currentUser._id));
+            setFeedback({ type: 'error', message: `Incorrect! It was ${carrotsCount} carrots.` });
+            dispatch(reduceAttempts(currentUser._id));
         }
     };
 
     if (!currentUser) return null;
 
-    if (currentUser.attempts <= 0) {
+    if (gameEnded || currentUser.attempts <= 0) {
         return (
             <div className="game-container">
                 <div className="game-content">
                     <h2 className="game-header">Game Over</h2>
-                    <p style={{ marginBottom: '1rem', color: '#f5365c', fontWeight: 'bold' }}>
-                        Incorrect Answer!
+                    <p className="game-over-reason">
+                        {gameOverReason === 'timeout' ? 'Time Out!' : 'No attempts left!'}
                     </p>
                     <div className="game-stats">
                         <div className="stat-item">
@@ -180,12 +216,15 @@ const Game = () => {
                         </div>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '2rem' }}>
-                        <button 
-                            className="submit-btn" 
-                            onClick={() => dispatch(resetGame(currentUser._id)).then(() => fetchQuestion())}
+                        <button
+                            className="submit-btn"
+                            onClick={handlePlayAgain}
                             style={{ background: '#2dce89' }}
                         >
                             Play Again
+                        </button>
+                        <button className="secondary-btn" onClick={() => setDifficulty(null)}>
+                            Change Level
                         </button>
                         <button className="back-btn" onClick={() => navigate('/home')}>Return Home</button>
                     </div>
@@ -200,8 +239,8 @@ const Game = () => {
                 <header className="game-header">
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                         <h2>Logic Heart Puzzle</h2>
-                        <button 
-                            onClick={() => setIsMuted(!isMuted)} 
+                        <button
+                            onClick={() => setIsMuted(!isMuted)}
                             className="mute-btn"
                             title={isMuted ? "Unmute Music" : "Mute Music"}
                         >
@@ -209,13 +248,17 @@ const Game = () => {
                         </button>
                     </div>
                     <div className="game-stats">
-                         <div className="stat-item">
+                        <div className="stat-item">
                             <span className="stat-label">Score</span>
                             <span className="stat-value">{currentUser.score}</span>
                         </div>
                         <div className="stat-item">
                             <span className="stat-label">Attempts</span>
                             <span className="stat-value">{currentUser.attempts}</span>
+                        </div>
+                        <div className="stat-item">
+                            <span className="stat-label">Level</span>
+                            <span className="stat-value">{difficulty ? DIFFICULTY_CONFIG[difficulty].label : '-'}</span>
                         </div>
                         <div className={`timer-display ${timeLeft > 20 ? 'safe' : timeLeft > 10 ? 'warning' : 'danger'}`}>
                             <span>⏱️</span>
@@ -225,15 +268,27 @@ const Game = () => {
                 </header>
 
                 <main>
-                    <div className="game-image-container">
-                        {loading ? (
-                            <div className="loading-spinner"></div>
-                        ) : questionImage ? (
-                            <img src={questionImage} alt="Puzzle" className="game-puzzle-image" />
-                        ) : (
-                            <p>No image loaded</p>
-                        )}
-                    </div>
+                    {!difficulty ? (
+                        <div className="difficulty-select">
+                            <h3 className="difficulty-title">Choose your level</h3>
+                            <p className="difficulty-subtitle">Easy gives more time, Hard gives less time.</p>
+                            <div className="difficulty-actions">
+                                <button className="difficulty-btn easy" onClick={() => startGame('easy')}>Easy</button>
+                                <button className="difficulty-btn medium" onClick={() => startGame('medium')}>Medium</button>
+                                <button className="difficulty-btn hard" onClick={() => startGame('hard')}>Hard</button>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="game-image-container">
+                            {loading ? (
+                                <div className="loading-spinner"></div>
+                            ) : questionImage ? (
+                                <img src={questionImage} alt="Puzzle" className="game-puzzle-image" />
+                            ) : (
+                                <p>No image loaded</p>
+                            )}
+                        </div>
+                    )}
 
                     {feedback && (
                         <div className={`feedback-message ${feedback.type}`}>
@@ -250,11 +305,11 @@ const Game = () => {
                                 onChange={(e) => setInputCarrots(e.target.value)}
                                 placeholder="0"
                                 className="game-input"
-                                disabled={loading || (feedback && feedback.type === 'success')}
+                                disabled={!difficulty || loading || !!feedback}
                                 required
                             />
                         </div>
-                        
+
                         <div className="input-group">
                             <label className="input-label">Hearts ❤️</label>
                             <input
@@ -263,15 +318,15 @@ const Game = () => {
                                 onChange={(e) => setInputHearts(e.target.value)}
                                 placeholder="0"
                                 className="game-input"
-                                disabled={loading || (feedback && feedback.type === 'success')}
+                                disabled={!difficulty || loading || !!feedback}
                                 required
                             />
                         </div>
 
-                        <button 
-                            type="submit" 
+                        <button
+                            type="submit"
                             className="submit-btn"
-                            disabled={loading || (feedback && feedback.type === 'success') || (inputCarrots === '' || inputHearts === '')}
+                            disabled={!difficulty || loading || !!feedback || (inputCarrots === '' || inputHearts === '')}
                         >
                             Submit
                         </button>

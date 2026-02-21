@@ -21,7 +21,7 @@ router.post(
   asyncHandler(async (req, res) => {
     try {
       const { username, email, password } = req.body;
-      
+
       console.log('Registration attempt:', { username, email: email?.toLowerCase() });
 
       if (!username || !email || !password) {
@@ -34,7 +34,7 @@ router.post(
 
       // Check if user exists (case-insensitive)
       const userExists = await User.findOne({ email: normalizedEmail });
-      
+
       console.log('User exists check:', { email: normalizedEmail, exists: !!userExists });
 
       if (userExists) {
@@ -101,19 +101,19 @@ router.post(
   '/verify-otp',
   asyncHandler(async (req, res) => {
     const { email, otp } = req.body;
-    
+
     console.log('=== OTP Verification Request ===');
     console.log('Received email:', email);
     console.log('Received OTP:', otp);
     console.log('OTP type:', typeof otp);
     console.log('OTP length:', otp?.length);
-    
+
     const normalizedEmail = email.toLowerCase().trim();
     const trimmedOtp = otp.toString().trim();
-    
+
     console.log('Normalized email:', normalizedEmail);
     console.log('Trimmed OTP:', trimmedOtp);
-    
+
     const user = await User.findOne({ email: normalizedEmail });
 
     if (!user) {
@@ -132,17 +132,17 @@ router.post(
     console.log('Time valid:', user.otpExpires > Date.now());
 
     if (user.isVerified) {
-        console.log('User already verified');
-        res.status(200).json({
-            _id: user.id,
-            username: user.username,
-            email: user.email,
-            token: generateToken(user._id),
-            carrots: user.carrots || 0,
-            hearts: user.hearts || 0,
-            message: 'User already verified'
-        });
-        return;
+      console.log('User already verified');
+      res.status(200).json({
+        _id: user.id,
+        username: user.username,
+        email: user.email,
+        token: generateToken(user._id),
+        carrots: user.carrots || 0,
+        hearts: user.hearts || 0,
+        message: 'User already verified'
+      });
+      return;
     }
 
     // Compare OTPs with trimming and ensure both are strings
@@ -180,10 +180,10 @@ router.post(
   '/resend-otp',
   asyncHandler(async (req, res) => {
     const { email } = req.body;
-    
+
     console.log('=== Resend OTP Request ===');
     console.log('Email:', email);
-    
+
     const normalizedEmail = email.toLowerCase().trim();
     const user = await User.findOne({ email: normalizedEmail });
 
@@ -220,7 +220,7 @@ router.post(
       // Continue even if email fails
     }
 
-    res.json({ 
+    res.json({
       message: 'OTP resent successfully',
       // TEMPORARY: Include OTP in response for testing (remove in production)
       otp: otp
@@ -238,7 +238,7 @@ router.post(
 
     // Normalize email to lowercase
     const normalizedEmail = email.toLowerCase().trim();
-    
+
     // Check for user email
     const user = await User.findOne({ email: normalizedEmail });
 
@@ -351,7 +351,7 @@ router.get('/:id', async (req, res) => {
 // @access  Public
 router.put('/:id/score', async (req, res) => {
   try {
-    const { points, carrots, hearts } = req.body; 
+    const { points, carrots, hearts } = req.body;
     const user = await User.findById(req.params.id);
 
     if (user) {
@@ -391,6 +391,23 @@ router.put('/:id/wrong', async (req, res) => {
   }
 });
 
+// @desc    Test Email Service
+// @route   GET /api/users/test-email
+// @access  Public
+router.get(
+  '/test-email',
+  asyncHandler(async (req, res) => {
+    const testEmail = 'test@example.com';
+    const testOtp = '123456';
 
+    try {
+      await sendOTP(testEmail, testOtp);
+      res.status(200).json({ message: 'Test email sent successfully.' });
+    } catch (error) {
+      console.error('Test email failed:', error.message);
+      res.status(500).json({ message: 'Failed to send test email.', error: error.message });
+    }
+  })
+);
 
 module.exports = router;

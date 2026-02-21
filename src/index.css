@@ -23,13 +23,7 @@ body {
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
-}
-
-* {
-  color: black !important;
-  border-color: black !important;
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
 }
 
 /* Global Background Image */
@@ -45,4 +39,5 @@ body::before {
   z-index: -1;
   pointer-events: none;
 }
+
 /* Removed animation for static image */

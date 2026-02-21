@@ -40,6 +40,10 @@ foreach ($line in $lines) {
     }
 }
 
+# Ensure MAILJET_API_KEY and MAILJET_SECRET_KEY are added to Vercel
+$lines += "MAILJET_API_KEY=$($env:MAILJET_API_KEY)"
+$lines += "MAILJET_SECRET_KEY=$($env:MAILJET_SECRET_KEY)"
+
 Write-Host "Done! Please verify in Vercel Dashboard." -ForegroundColor Green
 Write-Host "You must REDEPLOY for changes to take effect." -ForegroundColor Cyan
 Write-Host "Run: vercel --prod" -ForegroundColor Yellow

@@ -14,7 +14,7 @@ const sendOTP = async (email, otp) => {
     const request = mailjet
       .post("send", { 'version': 'v3.1' })
       .request({
-        "Messages":[
+        "Messages": [
           {
             "From": {
               "Email": "nirmalkoza@gmail.com",
@@ -40,10 +40,10 @@ const sendOTP = async (email, otp) => {
   } catch (error) {
     console.error('Error sending email:', error.statusCode);
     if (error.response) {
-      // console.error(JSON.stringify(error.response.body, null, 2));
-      console.error(error.message);
+      console.error('Response body:', JSON.stringify(error.response.body, null, 2));
+      console.error('Error message:', error.message);
     }
-    
+
     // DEVELOPMENT FALLBACK: Log OTP to console if email fails
     console.log('\n========================================');
     console.log('📧 EMAIL DELIVERY FAILED - DEVELOPMENT MODE');

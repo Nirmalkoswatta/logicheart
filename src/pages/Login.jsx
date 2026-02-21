@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { loginUser, clearError } from '../redux/userSlice';
 import { toast } from 'react-toastify';
@@ -59,16 +59,22 @@ const Login = () => {
                 className="login-input"
               />
               <span className="input-icon">🔒</span>
-              <a href="#" className="forgot-password">Forgot Password?</a>
+              <button
+                type="button"
+                className="forgot-password"
+                onClick={() => toast.info('Forgot Password is not available yet.')}
+              >
+                Forgot Password?
+              </button>
             </div>
 
             <button type="submit" className="login-button">Login</button>
 
             <div className="register-link">
               Don't have an Account?{' '}
-              <span onClick={() => navigate('/register')} className="register-text">
+              <Link to="/register" className="register-text">
                 Register
-              </span>
+              </Link>
             </div>
           </form>
         </div>

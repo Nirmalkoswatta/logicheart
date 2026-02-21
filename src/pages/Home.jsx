@@ -21,19 +21,6 @@ const Home = () => {
     navigate('/login');
   };
 
-  const handleAddScore = () => {
-    if (currentUser) {
-      // Mocking carrots/hearts for the "test" button action if needed, or just score
-      dispatch(updateScore({ userId: currentUser._id, points: 10, carrots: 1, hearts: 1 }));
-    }
-  };
-
-  const handleWrongAnswer = () => {
-    if (currentUser) {
-      dispatch(reduceAttempts(currentUser._id));
-    }
-  };
-
   if (!currentUser) return null;
 
   return (
@@ -60,6 +47,9 @@ const Home = () => {
           <div className="stat-card level-card">
             <h3>Level</h3>
             <div className="stat-value">{Math.floor(currentUser.score / 50) + 1}</div>
+            <div className="xp-bar">
+              <div className="xp-progress" style={{ width: `${(currentUser.score % 50) * 2}%` }}></div>
+            </div>
           </div>
           <div className="stat-card score-card">
             <h3>Score</h3>
@@ -71,12 +61,25 @@ const Home = () => {
           </div>
         </section>
 
+        <section className="streak-section">
+          <div className="streak-counter">
+            <h3>🔥 Streak</h3>
+            <div className="streak-value">{currentUser.streak || 0}</div>
+          </div>
+        </section>
+
+        <section className="daily-challenge-section">
+          <div className="daily-challenge-card">
+            <h3>Daily Challenge</h3>
+            <p>Complete 3 puzzles to earn a bonus!</p>
+            <button className="challenge-btn" onClick={() => navigate('/game')}>Start Challenge</button>
+          </div>
+        </section>
+
         <section className="game-controls-section">
           <button className="start-game-btn" onClick={() => navigate('/game')}>
             Start Mission
           </button>
-
-
         </section>
 
         <footer className="dashboard-footer">

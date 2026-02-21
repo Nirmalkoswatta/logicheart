@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { updateScore, reduceAttempts, resetGame } from '../redux/userSlice';
-import './Game.css';
+import './Game.scss';
 import { API_BASE_URL } from '../config';
 
 // Import Audio Files

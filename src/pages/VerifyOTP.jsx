@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { verifyUser, resetUser, resendOtp } from '../redux/userSlice';
 import { toast } from 'react-toastify';
-import './VerifyOTP.css';
+import './VerifyOTP.scss';
 
 const VerifyOTP = () => {
     const [otp, setOtp] = useState('');

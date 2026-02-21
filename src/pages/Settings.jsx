@@ -2,7 +2,7 @@ import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { deleteUser } from '../redux/userSlice';
-import './Settings.css';
+import './Settings.scss';
 
 const Settings = () => {
   const { currentUser } = useSelector((state) => state.user);
@@ -13,7 +13,7 @@ const Settings = () => {
     if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
       if (currentUser) {
         dispatch(deleteUser(currentUser._id)).then(() => {
-            navigate('/login');
+          navigate('/login');
         });
       }
     }

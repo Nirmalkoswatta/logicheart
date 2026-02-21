@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { loginUser, clearError } from '../redux/userSlice';
 import { toast } from 'react-toastify';
-import './Login.css';
+import './Login.scss';
 
 const Login = () => {
   const [email, setEmail] = useState('');

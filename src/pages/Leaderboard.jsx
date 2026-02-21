@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import './Leaderboard.css';
+import './Leaderboard.scss';
 import { API_BASE_URL } from '../config';
 
 const Leaderboard = () => {
@@ -33,7 +33,7 @@ const Leaderboard = () => {
         </header>
 
         {loading ? (
-          <div style={{textAlign: 'center'}}>Loading scores...</div>
+          <div style={{ textAlign: 'center' }}>Loading scores...</div>
         ) : (
           <div className="leaderboard-table-container">
             <table className="leaderboard-table">
@@ -61,8 +61,8 @@ const Leaderboard = () => {
           </div>
         )}
 
-        <div style={{textAlign: 'center'}}>
-            <button className="back-btn" onClick={() => navigate('/home')}>Back to Dashboard</button>
+        <div style={{ textAlign: 'center' }}>
+          <button className="back-btn" onClick={() => navigate('/home')}>Back to Dashboard</button>
         </div>
       </div>
     </div>

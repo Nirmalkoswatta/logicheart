@@ -397,7 +397,13 @@ router.put('/:id/wrong', async (req, res) => {
 router.get(
   '/test-email',
   asyncHandler(async (req, res) => {
-    const testEmail = 'test@example.com';
+    const isProd = process.env.NODE_ENV === 'production';
+    if (isProd) {
+      res.status(404);
+      throw new Error('Not found');
+    }
+
+    const testEmail = (req.query.email || 'test@example.com').toString().trim();
     const testOtp = '123456';
 
     try {

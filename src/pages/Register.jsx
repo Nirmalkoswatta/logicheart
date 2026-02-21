@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { registerUser, clearError } from '../redux/userSlice';
 import { toast } from 'react-toastify';
-import './Register.css';
+import './Register.scss';
 import { API_BASE_URL } from '../config';
 
 const Register = () => {
@@ -27,25 +27,25 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     console.log('Form submitted');
-    
+
     if (formData.password !== formData.confirmPassword) {
       alert('Passwords do not match!');
       return;
     }
-    
+
     dispatch(clearError());
     console.log('Dispatching registerUser with:', { username: formData.name, email: formData.email });
-    
+
     const result = await dispatch(registerUser({ username: formData.name, email: formData.email, password: formData.password }));
-    
+
     console.log('Registration result:', JSON.stringify(result, null, 2));
     console.log('Request status:', result.meta.requestStatus);
     console.log('Result payload:', result.payload);
     console.log('Result error:', result.error);
-    
+
     if (result.meta.requestStatus === 'fulfilled') {
       console.log('Registration successful, navigating to verify-otp');
-      
+
       // Check if OTP is included in the response (for development/testing)
       if (result.payload?.otp) {
         toast.success(`Registration successful! Your OTP is: ${result.payload.otp}`, {
@@ -56,7 +56,7 @@ const Register = () => {
       } else {
         toast.success('Registration successful! Check your email for OTP.');
       }
-      
+
       navigate('/verify-otp', { state: { email: formData.email } });
     } else if (result.meta.requestStatus === 'rejected') {
       // Show the actual error from the backend

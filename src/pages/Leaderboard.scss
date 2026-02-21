@@ -1,0 +1,137 @@
+.leaderboard-container {
+  min-height: 100vh;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Poppins', sans-serif;
+  color: #32325d;
+  background: transparent;
+}
+
+.leaderboard-content {
+  width: 100%;
+  max-width: 980px;
+  border-radius: 22px;
+  padding: 28px;
+  background: rgba(255, 255, 255, 0.88);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.12);
+  animation: boardFadeIn 0.35s ease-out;
+}
+
+@keyframes boardFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.leaderboard-header {
+  text-align: center;
+  margin-bottom: 18px;
+}
+
+.leaderboard-header h1 {
+  font-size: 2.1rem;
+  font-weight: 900;
+  margin-bottom: 6px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.leaderboard-header p {
+  color: #6b7280;
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.leaderboard-table-container {
+  overflow-x: auto;
+  border-radius: 18px;
+  border: 1px solid rgba(17, 24, 39, 0.08);
+  background: rgba(255, 255, 255, 0.65);
+}
+
+.leaderboard-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 720px;
+}
+
+.leaderboard-table thead th {
+  text-align: left;
+  padding: 14px 16px;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #8898aa;
+  background: rgba(255, 255, 255, 0.8);
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+}
+
+.leaderboard-table tbody td {
+  padding: 14px 16px;
+  font-weight: 700;
+  color: #525f7f;
+  border-top: 1px solid rgba(17, 24, 39, 0.06);
+}
+
+.leaderboard-table tbody tr:hover td {
+  background: rgba(102, 126, 234, 0.06);
+}
+
+.rank-badge {
+  display: inline-flex;
+  width: 32px;
+  height: 32px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(107, 114, 128, 0.12);
+  color: #6b7280;
+  font-weight: 900;
+}
+
+.rank-1 .rank-badge {
+  background: rgba(255, 215, 0, 0.6);
+  color: #fff;
+}
+
+.rank-2 .rank-badge {
+  background: rgba(192, 192, 192, 0.75);
+  color: #fff;
+}
+
+.rank-3 .rank-badge {
+  background: rgba(205, 127, 50, 0.75);
+  color: #fff;
+}
+
+.leaderboard-container .back-btn {
+  margin-top: 18px;
+  padding: 12px 18px;
+  border-radius: 14px;
+  border: 1px solid rgba(17, 24, 39, 0.12);
+  background: rgba(255, 255, 255, 0.7);
+  color: #32325d;
+  font-weight: 900;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.leaderboard-container .back-btn:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.95);
+}

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { logout, updateScore, reduceAttempts } from '../redux/userSlice';
-import './Home.css';
+import './Home.scss';
 
 const Home = () => {
   const { currentUser } = useSelector((state) => state.user);
@@ -38,20 +38,20 @@ const Home = () => {
 
   return (
     <div className="dashboard-container">
-      
+
       <header className="dashboard-header">
         <div className="header-top">
-           <div className="header-logo">Logic Heart</div>
-           <div className="header-user-actions">
-              <span className="user-greeting">Welcome, {currentUser.username || 'Explorer'}</span>
-              <button onClick={handleLogout} className="logout-btn">Logout</button>
-           </div>
+          <div className="header-logo">Logic Heart</div>
+          <div className="header-user-actions">
+            <span className="user-greeting">Welcome, {currentUser.username || 'Explorer'}</span>
+            <button onClick={handleLogout} className="logout-btn">Logout</button>
+          </div>
         </div>
-        
+
         <nav className="dashboard-nav-bar">
-           <button className="nav-item active">Home</button>
-           <button className="nav-item" onClick={() => navigate('/leaderboard')}>Leaderboard</button>
-           <button className="nav-item" onClick={() => navigate('/settings')}>Settings</button>
+          <button className="nav-item active">Home</button>
+          <button className="nav-item" onClick={() => navigate('/leaderboard')}>Leaderboard</button>
+          <button className="nav-item" onClick={() => navigate('/settings')}>Settings</button>
         </nav>
       </header>
 
@@ -75,14 +75,14 @@ const Home = () => {
           <button className="start-game-btn" onClick={() => navigate('/game')}>
             Start Mission
           </button>
-          
+
 
         </section>
 
         <footer className="dashboard-footer">
-           <button className="rules-link" onClick={() => setShowRules(!showRules)}>
-             How to Play
-           </button>
+          <button className="rules-link" onClick={() => setShowRules(!showRules)}>
+            How to Play
+          </button>
         </footer>
 
         {showRules && (

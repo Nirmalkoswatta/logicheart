@@ -45,7 +45,18 @@ const Register = () => {
     
     if (result.meta.requestStatus === 'fulfilled') {
       console.log('Registration successful, navigating to verify-otp');
-      toast.success('Registration successful! Check your email for OTP.');
+      
+      // Check if OTP is included in the response (for development/testing)
+      if (result.payload?.otp) {
+        toast.success(`Registration successful! Your OTP is: ${result.payload.otp}`, {
+          autoClose: 10000, // Show for 10 seconds
+          position: 'top-center'
+        });
+        console.log('🔐 OTP Code:', result.payload.otp);
+      } else {
+        toast.success('Registration successful! Check your email for OTP.');
+      }
+      
       navigate('/verify-otp', { state: { email: formData.email } });
     } else if (result.meta.requestStatus === 'rejected') {
       // Show the actual error from the backend

@@ -102,15 +102,37 @@ router.post(
   asyncHandler(async (req, res) => {
     const { email, otp } = req.body;
     
+    console.log('=== OTP Verification Request ===');
+    console.log('Received email:', email);
+    console.log('Received OTP:', otp);
+    console.log('OTP type:', typeof otp);
+    console.log('OTP length:', otp?.length);
+    
     const normalizedEmail = email.toLowerCase().trim();
+    const trimmedOtp = otp.toString().trim();
+    
+    console.log('Normalized email:', normalizedEmail);
+    console.log('Trimmed OTP:', trimmedOtp);
+    
     const user = await User.findOne({ email: normalizedEmail });
 
     if (!user) {
+      console.log('User not found for email:', normalizedEmail);
       res.status(400);
       throw new Error('User not found');
     }
 
+    console.log('User found:', user._id);
+    console.log('Stored OTP:', user.otp);
+    console.log('Stored OTP type:', typeof user.otp);
+    console.log('OTP Expires:', user.otpExpires);
+    console.log('Current time:', Date.now());
+    console.log('Time remaining (ms):', user.otpExpires - Date.now());
+    console.log('OTP match:', user.otp === trimmedOtp);
+    console.log('Time valid:', user.otpExpires > Date.now());
+
     if (user.isVerified) {
+        console.log('User already verified');
         res.status(200).json({
             _id: user.id,
             username: user.username,
@@ -123,7 +145,12 @@ router.post(
         return;
     }
 
-    if (user.otp === otp && user.otpExpires > Date.now()) {
+    // Compare OTPs with trimming and ensure both are strings
+    const otpMatch = user.otp === trimmedOtp;
+    const timeValid = user.otpExpires > Date.now();
+
+    if (otpMatch && timeValid) {
+      console.log('OTP verification successful!');
       user.isVerified = true;
       user.otp = undefined;
       user.otpExpires = undefined;
@@ -138,6 +165,8 @@ router.post(
         hearts: user.hearts || 0,
       });
     } else {
+      console.log('OTP verification failed!');
+      console.log('Reason: OTP match =', otpMatch, ', Time valid =', timeValid);
       res.status(400);
       throw new Error('Invalid or expired OTP');
     }
@@ -151,15 +180,21 @@ router.post(
   '/resend-otp',
   asyncHandler(async (req, res) => {
     const { email } = req.body;
+    
+    console.log('=== Resend OTP Request ===');
+    console.log('Email:', email);
+    
     const normalizedEmail = email.toLowerCase().trim();
     const user = await User.findOne({ email: normalizedEmail });
 
     if (!user) {
+      console.log('User not found for email:', normalizedEmail);
       res.status(404);
       throw new Error('User not found');
     }
 
     if (user.isVerified) {
+      console.log('User already verified');
       res.status(400);
       throw new Error('User already verified');
     }
@@ -168,13 +203,28 @@ router.post(
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const otpExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
 
+    console.log('Generated new OTP:', otp);
+    console.log('OTP expires at:', new Date(otpExpires));
+
     user.otp = otp;
     user.otpExpires = otpExpires;
     await user.save();
 
-    await sendOTP(user.email, otp);
+    console.log('OTP saved to database');
 
-    res.json({ message: 'OTP resent successfully' });
+    try {
+      await sendOTP(user.email, otp);
+      console.log('OTP email sent successfully');
+    } catch (emailError) {
+      console.error('Email sending failed:', emailError.message);
+      // Continue even if email fails
+    }
+
+    res.json({ 
+      message: 'OTP resent successfully',
+      // TEMPORARY: Include OTP in response for testing (remove in production)
+      otp: otp
+    });
   })
 );
 

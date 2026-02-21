@@ -27,9 +27,26 @@ const VerifyOTP = () => {
         }
     }, [location, navigate]);
 
+    // Redirect to dashboard on successful verification
+    useEffect(() => {
+        if (currentUser && currentUser.token) {
+            toast.success('Email verified successfully! Welcome to LogicHeart! 🎉');
+            // Redirect to dashboard/home after a brief delay
+            setTimeout(() => {
+                navigate('/');
+            }, 1500);
+        }
+    }, [currentUser, navigate]);
+
     const handleSubmit = (e) => {
         e.preventDefault();
-        dispatch(verifyUser({ email, otp }));
+        // Trim OTP and normalize email to match backend processing
+        const trimmedOtp = otp.trim();
+        const normalizedEmail = email.toLowerCase().trim();
+        
+        console.log('Submitting OTP verification:', { email: normalizedEmail, otp: trimmedOtp });
+        
+        dispatch(verifyUser({ email: normalizedEmail, otp: trimmedOtp }));
     };
 
     const handleResend = async () => {
@@ -39,7 +56,16 @@ const VerifyOTP = () => {
         }
         const result = await dispatch(resendOtp(email));
         if (result.meta.requestStatus === 'fulfilled') {
-            toast.success("OTP sent successfully!");
+            // Check if OTP is included in the response (for development/testing)
+            if (result.payload?.otp) {
+                toast.success(`OTP resent successfully! Your OTP is: ${result.payload.otp}`, {
+                    autoClose: 10000, // Show for 10 seconds
+                    position: 'top-center'
+                });
+                console.log('🔐 Resent OTP Code:', result.payload.otp);
+            } else {
+                toast.success("OTP sent successfully!");
+            }
         } else {
             toast.error(result.payload || "Failed to resend OTP");
         }

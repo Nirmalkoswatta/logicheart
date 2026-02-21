@@ -43,9 +43,9 @@ const VerifyOTP = () => {
         // Trim OTP and normalize email to match backend processing
         const trimmedOtp = otp.trim();
         const normalizedEmail = email.toLowerCase().trim();
-        
+
         console.log('Submitting OTP verification:', { email: normalizedEmail, otp: trimmedOtp });
-        
+
         dispatch(verifyUser({ email: normalizedEmail, otp: trimmedOtp }));
     };
 
@@ -92,8 +92,8 @@ const VerifyOTP = () => {
                     <button type="submit" className="verify-btn" disabled={loading}>
                         {loading ? 'Verifying...' : 'Verify'}
                     </button>
-                    
-                    <button type="button" className="resend-link" onClick={handleResend} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', textDecoration: 'underline', width: '100%', marginTop: '10px' }}>
+
+                    <button type="button" className="resend-link" onClick={handleResend}>
                         Didn't receive code? Resend
                     </button>
 

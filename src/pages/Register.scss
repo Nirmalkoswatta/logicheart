@@ -43,7 +43,7 @@
 
 .register-title {
   text-align: center;
-  color: #fff;
+  color: #000;
   font-size: 32px;
   font-weight: 600;
   margin-bottom: 30px;
@@ -62,7 +62,7 @@
   border: none;
   border-bottom: 2px solid rgba(255, 255, 255, 0.5);
   background: transparent;
-  color: #fff;
+  color: #000;
   font-size: 16px;
   border-radius: 8px;
   outline: none;
@@ -71,7 +71,7 @@
 }
 
 .register-input::placeholder {
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(0, 0, 0, 0.6);
 }
 
 .register-input:focus {
@@ -84,7 +84,7 @@
   right: 15px;
   top: 50%;
   transform: translateY(-50%);
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(0, 0, 0, 0.7);
   font-size: 18px;
 }
 
@@ -94,7 +94,7 @@
   background: rgba(255, 255, 255, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 10px;
-  color: #fff;
+  color: #000;
   font-size: 18px;
   font-weight: 600;
   cursor: pointer;
@@ -112,12 +112,12 @@
 .login-link {
   text-align: center;
   margin-top: 20px;
-  color: #fff;
+  color: #000;
   font-size: 14px;
 }
 
 .login-text {
-  color: #fff;
+  color: #000;
   font-weight: 600;
   cursor: pointer;
   text-decoration: underline;

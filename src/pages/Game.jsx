@@ -17,9 +17,9 @@ const Game = () => {
     const navigate = useNavigate();
 
     const DIFFICULTY_CONFIG = {
-        easy: { label: 'Easy', secondsPerQuestion: 60 },
-        medium: { label: 'Medium', secondsPerQuestion: 45 },
-        hard: { label: 'Hard', secondsPerQuestion: 30 },
+        easy: { label: 'Easy', secondsPerQuestion: 15 },
+        medium: { label: 'Medium', secondsPerQuestion: 10 },
+        hard: { label: 'Hard', secondsPerQuestion: 5 },
     };
 
     const [questionImage, setQuestionImage] = useState(null);
@@ -260,7 +260,7 @@ const Game = () => {
                             <span className="stat-label">Level</span>
                             <span className="stat-value">{difficulty ? DIFFICULTY_CONFIG[difficulty].label : '-'}</span>
                         </div>
-                        <div className={`timer-display ${timeLeft > 20 ? 'safe' : timeLeft > 10 ? 'warning' : 'danger'}`}>
+                        <div className={`timer-display ${timeLeft > 8 ? 'safe' : timeLeft > 4 ? 'warning' : 'danger'}`}>
                             <span>⏱️</span>
                             <span>{timeLeft}s</span>
                         </div>

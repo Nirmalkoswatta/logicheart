@@ -33,7 +33,7 @@ const Game = () => {
     const [loading, setLoading] = useState(true);
     const [feedback, setFeedback] = useState(null); // { type: 'success' | 'error', message: string }
     const [difficulty, setDifficulty] = useState(null); // 'easy' | 'medium' | 'hard'
-    const [timeLeft, setTimeLeft] = useState(0); // Timer in seconds
+    const [timeLeft, setTimeLeft] = useState(0);
     const [gameEnded, setGameEnded] = useState(false);
     const [gameOverReason, setGameOverReason] = useState(null); // 'attempts' | 'timeout'
 
@@ -45,7 +45,7 @@ const Game = () => {
     useEffect(() => {
         const bgMusic = bgMusicRef.current;
         bgMusic.loop = true;
-        bgMusic.volume = 0.5; // Set a reasonable volume
+        bgMusic.volume = 0.5;
 
         const playMusic = async () => {
             try {
@@ -65,7 +65,7 @@ const Game = () => {
             bgMusic.pause();
             bgMusic.currentTime = 0;
         };
-    }, [isMuted]); // Re-run if mute state changes (or just handle play/pause in separate effect)
+    }, [isMuted]);
 
     // Handle Mute Toggle Effect specifically
     useEffect(() => {
@@ -95,10 +95,9 @@ const Game = () => {
         setTimeLeft(DIFFICULTY_CONFIG[effectiveDifficulty].secondsPerQuestion);
         try {
             const response = await axios.get(`${API_BASE_URL}/game/question`);
-            // The API returns { question: "http://...", solution: 123, carrots: 5 }
             setQuestionImage(response.data.question);
             setSolution(response.data.solution);
-            setCarrotsCount(response.data.carrots); // Store expected carrots
+            setCarrotsCount(response.data.carrots);
         } catch (error) {
             console.error("Error fetching question:", error);
             setFeedback({ type: 'error', message: 'Failed to load question. Please try again.' });
@@ -122,6 +121,8 @@ const Game = () => {
         if (currentUser.attempts <= 0) {
             setGameEnded(true);
             setGameOverReason('attempts');
+            playSoundEffect(gameOverSound);
+            try { bgMusicRef.current.pause(); } catch { /* ignore */ }
             return;
         }
 
@@ -176,26 +177,33 @@ const Game = () => {
         const numCarrots = parseInt(inputCarrots, 10);
         const numHearts = parseInt(inputHearts, 10);
 
-        // Validation Logic
         const isCarrotsCorrect = numCarrots === carrotsCount;
 
         if (isCarrotsCorrect) {
+            console.log('=== Correct Answer - Updating Score ===');
+            console.log('Current difficulty:', difficulty);
+            console.log('Points to add:', 10);
+            
             setFeedback({ type: 'success', message: 'Correct! Great counting!' });
-            playSoundEffect(correctGuessSound); // Play Correct Guess Sound
+            playSoundEffect(correctGuessSound);
             dispatch(updateScore({
                 userId: currentUser._id,
                 points: 10,
                 carrots: numCarrots,
-                hearts: numHearts
+                hearts: numHearts,
+                difficulty: difficulty
             }));
 
-            // Load next question
             setTimeout(() => {
                 fetchQuestion();
             }, 1500);
         } else {
             setFeedback({ type: 'error', message: `Incorrect! It was ${carrotsCount} carrots.` });
             dispatch(reduceAttempts(currentUser._id));
+            // Auto-advance after showing error; game over is handled by the useEffect when attempts hit 0
+            setTimeout(() => {
+                fetchQuestion();
+            }, 1500);
         }
     };
 
@@ -253,7 +261,7 @@ const Game = () => {
                             <span className="stat-value">{currentUser.score}</span>
                         </div>
                         <div className="stat-item">
-                            <span className="stat-label">Attempts</span>
+                            <span className="stat-label">Attempts Left</span>
                             <span className="stat-value">{currentUser.attempts}</span>
                         </div>
                         <div className="stat-item">

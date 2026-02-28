@@ -19,6 +19,18 @@ const userSchema = mongoose.Schema(
       type: Number,
       default: 0,
     },
+    easyScore: {
+      type: Number,
+      default: 0,
+    },
+    mediumScore: {
+      type: Number,
+      default: 0,
+    },
+    hardScore: {
+      type: Number,
+      default: 0,
+    },
     attempts: {
       type: Number,
       default: 3,

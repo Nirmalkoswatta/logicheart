@@ -138,6 +138,8 @@ router.post(
         username: user.username,
         email: user.email,
         token: generateToken(user._id),
+        score: user.score || 0,
+        attempts: user.attempts || 3,
         carrots: user.carrots || 0,
         hearts: user.hearts || 0,
         message: 'User already verified'
@@ -161,6 +163,8 @@ router.post(
         username: user.username,
         email: user.email,
         token: generateToken(user._id),
+        score: user.score || 0,
+        attempts: user.attempts || 3,
         carrots: user.carrots || 0,
         hearts: user.hearts || 0,
       });
@@ -254,6 +258,8 @@ router.post(
         username: user.username,
         email: user.email,
         token: generateToken(user._id),
+        score: user.score || 0,
+        attempts: user.attempts || 3,
         carrots: user.carrots || 0,
         hearts: user.hearts || 0,
         isAdmin: user.isAdmin,
@@ -274,9 +280,10 @@ router.put('/:id/reset', async (req, res) => {
 
     if (user) {
       user.score = 0;
-      user.attempts = 1; // "Sudden Death" - 1 attempt
+      user.attempts = 3;
       user.carrots = 0;
       user.hearts = 0;
+      // Don't reset difficulty scores on play again - those are lifetime achievements
       const updatedUser = await user.save();
       res.json(updatedUser);
     } else {
@@ -315,7 +322,7 @@ router.get('/leaderboard/top', async (req, res) => {
     const users = await User.find({})
       .sort({ score: -1 })
       .limit(10)
-      .select('username score carrots hearts');
+      .select('username score easyScore mediumScore hardScore carrots hearts');
     res.json(users);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -333,8 +340,9 @@ router.get('/:id', async (req, res) => {
         _id: user._id,
         username: user.username,
         email: user.email,
-        score: user.score,
-        attempts: user.attempts,
+        score: user.score,        easyScore: user.easyScore || 0,
+        mediumScore: user.mediumScore || 0,
+        hardScore: user.hardScore || 0,        attempts: user.attempts,
         carrots: user.carrots || 0,
         hearts: user.hearts || 0,
       });
@@ -351,14 +359,40 @@ router.get('/:id', async (req, res) => {
 // @access  Public
 router.put('/:id/score', async (req, res) => {
   try {
-    const { points, carrots, hearts } = req.body;
+    const { points, carrots, hearts, difficulty } = req.body;
+    console.log('=== Score Update Request ===');
+    console.log('Points:', points);
+    console.log('Difficulty:', difficulty);
+    console.log('Request body:', req.body);
+    
     const user = await User.findById(req.params.id);
 
     if (user) {
       user.score += points || 0;
       user.carrots += carrots || 0;
       user.hearts += hearts || 0;
+      
+      // Update difficulty-specific score
+      if (difficulty === 'easy') {
+        console.log('Updating easyScore');
+        user.easyScore += points || 0;
+      } else if (difficulty === 'medium') {
+        console.log('Updating mediumScore');
+        user.mediumScore += points || 0;
+      } else if (difficulty === 'hard') {
+        console.log('Updating hardScore');
+        user.hardScore += points || 0;
+      } else {
+        console.log('No matching difficulty:', difficulty);
+      }
+      
       const updatedUser = await user.save();
+      console.log('Updated scores:', {
+        total: updatedUser.score,
+        easy: updatedUser.easyScore,
+        medium: updatedUser.mediumScore,
+        hard: updatedUser.hardScore
+      });
       res.json(updatedUser);
     } else {
       res.status(404).json({ message: 'User not found' });

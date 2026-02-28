@@ -94,10 +94,10 @@ export const fetchUser = createAsyncThunk(
 // Update Score (Add Points)
 export const updateScore = createAsyncThunk(
   'user/updateScore',
-  async ({ userId, points, carrots, hearts }, { rejectWithValue }) => {
+  async ({ userId, points, carrots, hearts, difficulty }, { rejectWithValue }) => {
     try {
       // PUT /api/users/:id/score
-      const response = await axios.put(`${API_URL}/${userId}/score`, { points, carrots, hearts });
+      const response = await axios.put(`${API_URL}/${userId}/score`, { points, carrots, hearts, difficulty });
       return response.data; // Returns updated user object
     } catch (error) {
       return rejectWithValue(error.response.data);

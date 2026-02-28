@@ -27,19 +27,40 @@ const Leaderboard = () => {
     fetchLeaderboard();
   }, []);
 
-  const getDifficultyLabel = (score) => {
-    const level = Math.floor(score / 50) + 1;
-    if (level <= 3) return 'easy';
-    if (level <= 7) return 'medium';
-    return 'hard';
-  };
-
   const getInitials = (name = '') =>
     name.slice(0, 2).toUpperCase() || '??';
 
-  const filteredLeaders = leaders.filter((player) =>
-    filter === 'all' ? true : getDifficultyLabel(player.score) === filter
-  );
+  const getScoreForFilter = (player, filterType) => {
+    if (filterType === 'easy') return player.easyScore || 0;
+    if (filterType === 'medium') return player.mediumScore || 0;
+    if (filterType === 'hard') return player.hardScore || 0;
+    return player.score || 0; // 'all' uses total score
+  };
+
+  const getDifficultyLabel = (player, filterType) => {
+    // For filtered view, return the filter difficulty
+    if (filterType !== 'all' && filterType) return filterType;
+    
+    // For 'all' view, determine player's primary difficulty based on highest score
+    const easy = player.easyScore || 0;
+    const medium = player.mediumScore || 0;
+    const hard = player.hardScore || 0;
+    
+    if (hard >= easy && hard >= medium && hard > 0) return 'hard';
+    if (medium >= easy && medium > 0) return 'medium';
+    if (easy > 0) return 'easy';
+    return 'easy'; // default
+  };
+
+  // Filter and sort leaders based on selected difficulty
+  const filteredLeaders = leaders
+    .map(player => ({
+      ...player,
+      displayScore: getScoreForFilter(player, filter),
+      difficultyLabel: getDifficultyLabel(player, filter)
+    }))
+    .sort((a, b) => b.displayScore - a.displayScore) // Sort by display score
+    .slice(0, 10); // Top 10 only
 
   return (
     <div className="lb-page">
@@ -85,7 +106,7 @@ const Leaderboard = () => {
             </div>
 
             {filteredLeaders.map((player, index) => {
-              const diff = getDifficultyLabel(player.score);
+              const diff = player.difficultyLabel;
               const isTop3 = index < 3;
               return (
                 <div
@@ -116,7 +137,7 @@ const Leaderboard = () => {
                   <div className="lb-stat">{player.hearts || 0}</div>
 
                   <div className="lb-score">
-                    <span className={isTop3 ? 'lb-score--highlight' : ''}>{player.score}</span>
+                    <span className={isTop3 ? 'lb-score--highlight' : ''}>{player.displayScore}</span>
                   </div>
                 </div>
               );

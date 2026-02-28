@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { logout } from '../redux/userSlice';
@@ -14,7 +14,6 @@ const Home = () => {
   const { currentUser } = useSelector((state) => state.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const [showRules, setShowRules] = useState(false);
 
   useEffect(() => {
     if (!currentUser) navigate('/login');
@@ -105,29 +104,21 @@ const Home = () => {
             <button className="hd-start-btn" onClick={() => navigate('/game')}>
               🚀 Start Mission
             </button>
-            <button className="hd-rules-btn" onClick={() => setShowRules(true)}>
-              📖 How to Play
-            </button>
           </section>
 
-        </main>
-      </div>
-
-      {/* ── Rules Modal ── */}
-      {showRules && (
-        <div className="hd-modal-overlay" onClick={() => setShowRules(false)}>
-          <div className="hd-modal" onClick={(e) => e.stopPropagation()}>
-            <h2 className="hd-modal-title">📖 How to Play</h2>
-            <ul className="hd-modal-list">
+          {/* How to Play */}
+          <section className="hd-rules">
+            <h3 className="hd-rules-title">📖 How to Play</h3>
+            <ul className="hd-rules-list">
               <li><span>🖼️</span> Analyze the puzzle image carefully.</li>
               <li><span>🥕</span> Count the number of Carrots.</li>
               <li><span>❤️</span> Count the number of Hearts.</li>
               <li><span>✅</span> Submit your counts to earn points!</li>
             </ul>
-            <button className="hd-modal-close" onClick={() => setShowRules(false)}>Got it!</button>
-          </div>
-        </div>
-      )}
+          </section>
+
+        </main>
+      </div>
 
     </div>
   );

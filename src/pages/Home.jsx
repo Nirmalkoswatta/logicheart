@@ -4,6 +4,12 @@ import { useNavigate } from 'react-router-dom';
 import { logout } from '../redux/userSlice';
 import './Home.scss';
 
+const NAV_ITEMS = [
+  { label: 'Home',        icon: '🏠', path: '/home' },
+  { label: 'Leaderboard', icon: '🏆', path: '/leaderboard' },
+  { label: 'Settings',    icon: '⚙️',  path: '/settings' },
+];
+
 const Home = () => {
   const { currentUser } = useSelector((state) => state.user);
   const dispatch = useDispatch();
@@ -11,9 +17,7 @@ const Home = () => {
   const [showRules, setShowRules] = useState(false);
 
   useEffect(() => {
-    if (!currentUser) {
-      navigate('/login');
-    }
+    if (!currentUser) navigate('/login');
   }, [currentUser, navigate]);
 
   const handleLogout = () => {
@@ -23,75 +27,108 @@ const Home = () => {
 
   if (!currentUser) return null;
 
-  const rawScore = typeof currentUser.score === 'number' ? currentUser.score : Number(currentUser.score);
-  const scoreValue = Number.isFinite(rawScore) ? rawScore : null;
+  const rawScore    = typeof currentUser.score    === 'number' ? currentUser.score    : Number(currentUser.score);
+  const scoreValue  = Number.isFinite(rawScore)   ? rawScore   : null;
   const rawAttempts = typeof currentUser.attempts === 'number' ? currentUser.attempts : Number(currentUser.attempts);
   const attemptsValue = Number.isFinite(rawAttempts) ? rawAttempts : 0;
-  const levelValue = scoreValue === null ? 'N/A' : Math.floor(scoreValue / 50) + 1;
+  const levelValue  = scoreValue === null ? 'N/A' : Math.floor(scoreValue / 50) + 1;
 
   return (
-    <div className="dashboard-container">
-      <header className="dashboard-header">
-        <div className="header-top">
-          <div className="header-logo">Logic Heart</div>
-          <div className="header-user-actions">
-            <span className="user-greeting">Welcome, {currentUser.username || 'Explorer'}</span>
-            <button onClick={handleLogout} className="logout-btn">Logout</button>
-          </div>
+    <div className="hd-root">
+
+      {/* ── Header ── */}
+      <header className="hd-header">
+        <div className="hd-logo">Logic<span>Heart</span></div>
+        <div className="hd-header-right">
+          <span className="hd-greeting">👋 {currentUser.username || 'Explorer'}</span>
+          <button className="hd-logout" onClick={handleLogout}>Logout</button>
         </div>
       </header>
 
-      <div className="dashboard-shell">
-        <aside className="dashboard-sidebar" aria-label="Dashboard navigation">
-          <button className="side-item active" type="button" onClick={() => navigate('/home')}>Home</button>
-          <button className="side-item side-item--wide" type="button" onClick={() => navigate('/leaderboard')}>Leaderboard</button>
-          <button className="side-item" type="button" onClick={() => navigate('/settings')}>Settings</button>
+      <div className="hd-shell">
+
+        {/* ── Sidebar ── */}
+        <aside className="hd-sidebar">
+          <nav>
+            {NAV_ITEMS.map(({ label, icon, path }) => (
+              <button
+                key={label}
+                className={`hd-nav-item ${path === '/home' ? 'active' : ''}`}
+                onClick={() => navigate(path)}
+              >
+                <span className="hd-nav-icon">{icon}</span>
+                <span className="hd-nav-label">{label}</span>
+              </button>
+            ))}
+          </nav>
         </aside>
 
-        <main className="dashboard-main">
-          <section className="stats-section">
-            <div className="stat-card level-card">
-              <h3>Level</h3>
-              <div className="stat-value">{levelValue}</div>
+        {/* ── Main ── */}
+        <main className="hd-main">
+
+          {/* Welcome banner */}
+          <div className="hd-banner">
+            <div>
+              <h2 className="hd-banner-title">Welcome back, {currentUser.username || 'Explorer'}!</h2>
+              <p className="hd-banner-sub">Ready to sharpen your counting skills today?</p>
             </div>
-            <div className="stat-card score-card">
-              <h3>Score</h3>
-              <div className="stat-value">{scoreValue ?? 0}</div>
+            <div className="hd-banner-icon">🧩</div>
+          </div>
+
+          {/* Stats */}
+          <section className="hd-stats">
+            <div className="hd-stat-card hd-stat--level">
+              <div className="hd-stat-icon">🎯</div>
+              <div className="hd-stat-info">
+                <span className="hd-stat-label">Level</span>
+                <span className="hd-stat-value">{levelValue}</span>
+              </div>
             </div>
-            <div className="stat-card attempts-card">
-              <h3>Attempts</h3>
-              <div className="stat-value">{attemptsValue}</div>
+            <div className="hd-stat-card hd-stat--score">
+              <div className="hd-stat-icon">⭐</div>
+              <div className="hd-stat-info">
+                <span className="hd-stat-label">Score</span>
+                <span className="hd-stat-value">{scoreValue ?? 0}</span>
+              </div>
+            </div>
+            <div className="hd-stat-card hd-stat--attempts">
+              <div className="hd-stat-icon">❤️</div>
+              <div className="hd-stat-info">
+                <span className="hd-stat-label">Attempts</span>
+                <span className="hd-stat-value">{attemptsValue}</span>
+              </div>
             </div>
           </section>
 
-          <section className="game-controls-section">
-            <button className="start-game-btn" onClick={() => navigate('/game')}>
-              Start Mission
+          {/* CTA */}
+          <section className="hd-cta">
+            <button className="hd-start-btn" onClick={() => navigate('/game')}>
+              🚀 Start Mission
+            </button>
+            <button className="hd-rules-btn" onClick={() => setShowRules(true)}>
+              📖 How to Play
             </button>
           </section>
 
-          <footer className="dashboard-footer">
-            <button className="rules-link glowing" onClick={() => setShowRules(!showRules)}>
-              How to Play
-            </button>
-          </footer>
         </main>
       </div>
 
+      {/* ── Rules Modal ── */}
       {showRules && (
-        <div className="rules-modal">
-          <div className="rules-content">
-            <h2>How to Play</h2>
-            <ul>
-              <li>Analyze the puzzle image.</li>
-              <li>Count quantity of Carrots and Hearts.</li>
-              <li>Submit your counts.</li>
-              <li>Correct answers earn points and fruits!</li>
+        <div className="hd-modal-overlay" onClick={() => setShowRules(false)}>
+          <div className="hd-modal" onClick={(e) => e.stopPropagation()}>
+            <h2 className="hd-modal-title">📖 How to Play</h2>
+            <ul className="hd-modal-list">
+              <li><span>🖼️</span> Analyze the puzzle image carefully.</li>
+              <li><span>🥕</span> Count the number of Carrots.</li>
+              <li><span>❤️</span> Count the number of Hearts.</li>
+              <li><span>✅</span> Submit your counts to earn points!</li>
             </ul>
-            <button className="close-rules" onClick={() => setShowRules(false)}>Close</button>
+            <button className="hd-modal-close" onClick={() => setShowRules(false)}>Got it!</button>
           </div>
         </div>
       )}
+
     </div>
   );
 };

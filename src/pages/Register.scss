@@ -31,6 +31,7 @@
 
 .register-card {
   background: transparent;
+  -webkit-backdrop-filter: blur(5px);
   backdrop-filter: blur(5px);
   border-radius: 20px;
   padding: 40px 50px;

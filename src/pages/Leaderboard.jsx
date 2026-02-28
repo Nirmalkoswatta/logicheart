@@ -4,6 +4,8 @@ import axios from 'axios';
 import './Leaderboard.scss';
 import { API_BASE_URL } from '../config';
 
+const MEDALS = ['🥇', '🥈', '🥉'];
+
 const Leaderboard = () => {
   const navigate = useNavigate();
   const [leaders, setLeaders] = useState([]);
@@ -25,78 +27,109 @@ const Leaderboard = () => {
     fetchLeaderboard();
   }, []);
 
-  const getLevel = (score) => Math.floor(score / 50) + 1;
-
   const getDifficultyLabel = (score) => {
-    const level = getLevel(score);
+    const level = Math.floor(score / 50) + 1;
     if (level <= 3) return 'easy';
     if (level <= 7) return 'medium';
     return 'hard';
   };
 
-  const filteredLeaders = leaders.filter((player) => {
-    if (filter === 'all') return true;
-    return getDifficultyLabel(player.score) === filter;
-  });
+  const getInitials = (name = '') =>
+    name.slice(0, 2).toUpperCase() || '??';
+
+  const filteredLeaders = leaders.filter((player) =>
+    filter === 'all' ? true : getDifficultyLabel(player.score) === filter
+  );
 
   return (
-    <div className="leaderboard-container">
-      <div className="leaderboard-content">
-        <header className="leaderboard-header">
-          <h1>Mission Scoreboard</h1>
-          <p>Check your latest mission summary and see how other explorers are doing.</p>
-        </header>
+    <div className="lb-page">
+      <div className="lb-card">
 
-        <div className="leaderboard-filters">
-          {['all', 'easy', 'medium', 'hard'].map((level) => (
+        {/* Header */}
+        <div className="lb-header">
+          <h1 className="lb-title">🏆 Mission Scoreboard</h1>
+          <p className="lb-subtitle">See how explorers rank across all missions</p>
+        </div>
+
+        {/* Filters */}
+        <div className="lb-filters">
+          {['all', 'easy', 'medium', 'hard'].map((f) => (
             <button
-              key={level}
-              className={`filter-btn filter-btn--${level} ${filter === level ? 'active' : ''}`}
-              onClick={() => setFilter(level)}
+              key={f}
+              className={`lb-filter lb-filter--${f} ${filter === f ? 'active' : ''}`}
+              onClick={() => setFilter(f)}
             >
-              {level.charAt(0).toUpperCase() + level.slice(1)}
+              {f === 'all' ? 'All' : f === 'easy' ? '🟢 Easy' : f === 'medium' ? '🟡 Medium' : '🔴 Hard'}
             </button>
           ))}
         </div>
 
+        {/* List */}
         {loading ? (
-          <div style={{ textAlign: 'center' }}>Loading scores...</div>
+          <div className="lb-loading">
+            <div className="lb-spinner" />
+            <span>Loading scores...</span>
+          </div>
+        ) : filteredLeaders.length === 0 ? (
+          <div className="lb-empty">No players found for this filter.</div>
         ) : (
-          <div className="leaderboard-table-container">
-            <table className="leaderboard-table">
-              <thead>
-                <tr>
-                  <th>Rank</th>
-                  <th>Player</th>
-                  <th>Level</th>
-                  <th>Fruit Points</th>
-                  <th>Heart Points</th>
-                  <th>Total Score</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredLeaders.map((player, index) => (
-                  <tr key={player._id} className={`rank-${index + 1}`}>
-                    <td><span className="rank-badge">{index + 1}</span></td>
-                    <td>{player.username}</td>
-                    <td>
-                      <span className={`difficulty-badge difficulty-badge--${getDifficultyLabel(player.score)}`}>
-                        {getDifficultyLabel(player.score).charAt(0).toUpperCase() + getDifficultyLabel(player.score).slice(1)}
-                      </span>
-                    </td>
-                    <td>{player.carrots || 0}</td>
-                    <td>{player.hearts || 0}</td>
-                    <td>{player.score}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="lb-list">
+            {/* Column headers */}
+            <div className="lb-list-header">
+              <span>Rank</span>
+              <span>Player</span>
+              <span>Level</span>
+              <span>🥕 Fruits</span>
+              <span>❤️ Hearts</span>
+              <span>Score</span>
+            </div>
+
+            {filteredLeaders.map((player, index) => {
+              const diff = getDifficultyLabel(player.score);
+              const isTop3 = index < 3;
+              return (
+                <div
+                  key={player._id}
+                  className={`lb-row ${isTop3 ? `lb-row--top${index + 1}` : ''}`}
+                >
+                  <div className="lb-rank">
+                    {isTop3
+                      ? <span className="lb-medal">{MEDALS[index]}</span>
+                      : <span className="lb-rank-num">{index + 1}</span>
+                    }
+                  </div>
+
+                  <div className="lb-player">
+                    <div className={`lb-avatar lb-avatar--${diff}`}>
+                      {getInitials(player.username)}
+                    </div>
+                    <span className="lb-username">{player.username}</span>
+                  </div>
+
+                  <div className="lb-level">
+                    <span className={`lb-badge lb-badge--${diff}`}>
+                      {diff.charAt(0).toUpperCase() + diff.slice(1)}
+                    </span>
+                  </div>
+
+                  <div className="lb-stat">{player.carrots || 0}</div>
+                  <div className="lb-stat">{player.hearts || 0}</div>
+
+                  <div className="lb-score">
+                    <span className={isTop3 ? 'lb-score--highlight' : ''}>{player.score}</span>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
 
-        <div style={{ textAlign: 'center' }}>
-          <button className="back-btn" onClick={() => navigate('/home')}>Back to Dashboard</button>
+        <div className="lb-footer">
+          <button className="lb-back-btn" onClick={() => navigate('/home')}>
+            ← Back to Dashboard
+          </button>
         </div>
+
       </div>
     </div>
   );

@@ -89,6 +89,24 @@
   font-size: 18px;
 }
 
+.eye-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+
+  &:hover {
+    color: rgba(0, 0, 0, 0.9);
+  }
+}
+
 .register-button {
   width: 100%;
   padding: 15px;

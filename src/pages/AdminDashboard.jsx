@@ -6,7 +6,7 @@ import { toast } from 'react-toastify';
 import './AdminDashboard.scss';
 
 const AdminDashboard = () => {
-  const [activeTab, setActiveTab] = useState('users');
+  const [activeTab, setActiveTab] = useState('overview');
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { adminUsers, activityLogs, loading, currentUser } = useSelector((state) => state.user);
@@ -19,6 +19,13 @@ const AdminDashboard = () => {
     dispatch(fetchAllUsers());
     dispatch(fetchActivityLogs());
   }, [dispatch, currentUser, navigate]);
+
+  const stats = {
+    totalUsers: adminUsers.length,
+    verifiedUsers: adminUsers.filter(u => u.isVerified).length,
+    admins: adminUsers.filter(u => u.isAdmin).length,
+    topScore: adminUsers.length > 0 ? Math.max(...adminUsers.map(u => u.score || 0)) : 0,
+  };
 
   const handleDeleteUser = async (id) => {
     if (window.confirm('Are you sure you want to delete this user?')) {
@@ -56,10 +63,16 @@ const AdminDashboard = () => {
         <h2 className="admin-logo">Admin Panel</h2>
         <nav>
           <button 
+            className={activeTab === 'overview' ? 'active' : ''} 
+            onClick={() => setActiveTab('overview')}
+          >
+            Dashboard
+          </button>
+          <button 
             className={activeTab === 'users' ? 'active' : ''} 
             onClick={() => setActiveTab('users')}
           >
-            Users
+            User Management
           </button>
           <button 
             className={activeTab === 'logs' ? 'active' : ''} 
@@ -73,7 +86,11 @@ const AdminDashboard = () => {
 
       <div className="admin-main">
         <header className="admin-header">
-          <h1>{activeTab === 'users' ? 'User Management' : 'Activity Logs'}</h1>
+          <h1>
+            {activeTab === 'overview' && 'Dashboard Overview'}
+            {activeTab === 'users' && 'User Management'}
+            {activeTab === 'logs' && 'Activity Logs'}
+          </h1>
           <div className="admin-user-info">
             <span>Welcome, {currentUser?.username}</span>
           </div>
@@ -81,6 +98,44 @@ const AdminDashboard = () => {
 
         <section className="admin-content">
           {loading && <div className="loading-spinner">Loading...</div>}
+
+          {!loading && activeTab === 'overview' && (
+            <div className="admin-overview">
+              <div className="stats-grid">
+                <div className="stat-card">
+                  <div className="stat-value">{stats.totalUsers}</div>
+                  <div className="stat-label">Total Users</div>
+                </div>
+                <div className="stat-card">
+                  <div className="stat-value">{stats.verifiedUsers}</div>
+                  <div className="stat-label">Verified Users</div>
+                </div>
+                <div className="stat-card">
+                  <div className="stat-value">{stats.admins}</div>
+                  <div className="stat-label">Administrators</div>
+                </div>
+                <div className="stat-card highlight">
+                  <div className="stat-value">{stats.topScore}</div>
+                  <div className="stat-label">Highest Score</div>
+                </div>
+              </div>
+
+              <div className="recent-activity-preview">
+                <h3>Recent Activity</h3>
+                <div className="preview-list">
+                  {activityLogs.slice(0, 5).map(log => (
+                    <div className="preview-item" key={log._id}>
+                      <span className="dot"></span>
+                      <span className="action">{log.action}:</span>
+                      <span className="details">{log.details}</span>
+                      <span className="time">{new Date(log.createdAt).toLocaleDateString()}</span>
+                    </div>
+                  ))}
+                  {activityLogs.length === 0 && <p>No recent activity.</p>}
+                </div>
+              </div>
+            </div>
+          )}
 
           {!loading && activeTab === 'users' && (
             <div className="users-table-container">

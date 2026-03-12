@@ -190,15 +190,16 @@ const AdminDashboard = () => {
                         <span className="time">{new Date(log.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
                       </div>
                     ))}
+                    {activityLogs.length === 0 && <p className="no-logs">No recent activity.</p>}
                   </div>
                 </div>
                 
                 <div className="quick-stats card">
                   <h3>User Health</h3>
                   <div className="health-bar">
-                    <div className="fill" style={{width: `${(stats.verifiedUsers / stats.totalUsers) * 100}%`}}></div>
+                    <div className="fill" style={{width: `${(stats.verifiedUsers / (stats.totalUsers || 1)) * 100}%`}}></div>
                   </div>
-                  <p>{Math.round((stats.verifiedUsers / stats.totalUsers) * 100)}% Verification Rate</p>
+                  <p>{Math.round((stats.verifiedUsers / (stats.totalUsers || 1)) * 100)}% Verification Rate</p>
                 </div>
               </div>
             </div>
@@ -374,61 +375,6 @@ const AdminDashboard = () => {
           </div>
         </div>
       )}
-    </div>
-  );
-};
-            <div className="users-table-container">
-              <table className="users-table">
-                <thead>
-                  <tr>
-                    <th>Username</th>
-                    <th>Email</th>
-                    <th>Score</th>
-                    <th>Verified</th>
-                    <th>Admin</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {adminUsers.map((user) => (
-                    <tr key={user._id}>
-                      <td>{user.username}</td>
-                      <td>{user.email}</td>
-                      <td>{user.score}</td>
-                      <td>{user.isVerified ? '✅' : '❌'}</td>
-                      <td>{user.isAdmin ? '👑' : '👤'}</td>
-                      <td className="actions">
-                        <button className="edit-btn" onClick={() => handleUpdateUser(user)}>Edit</button>
-                        <button 
-                          className="delete-btn" 
-                          onClick={() => handleDeleteUser(user._id)}
-                          disabled={user.username === 'admin'}
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {!loading && activeTab === 'logs' && (
-            <div className="logs-list">
-              {activityLogs.map((log) => (
-                <div key={log._id} className="log-item">
-                  <span className="log-time">{new Date(log.createdAt).toLocaleString()}</span>
-                  <span className="log-user"><strong>{log.username}</strong></span>
-                  <span className="log-action">{log.action}</span>
-                  <span className="log-details">{log.details}</span>
-                </div>
-              ))}
-              {activityLogs.length === 0 && <p>No logs found.</p>}
-            </div>
-          )}
-        </section>
-      </div>
     </div>
   );
 };

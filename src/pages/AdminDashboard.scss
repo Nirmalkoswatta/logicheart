@@ -94,6 +94,21 @@
         background: #1f2937;
         margin: 1rem 0;
       }
+
+      .logout-btn {
+        margin-top: auto;
+        color: #ef4444;
+        
+        &:hover {
+          background-color: rgba(239, 68, 68, 0.1);
+          color: #f87171;
+          border-color: rgba(239, 68, 68, 0.2);
+        }
+
+        .icon {
+          opacity: 0.9;
+        }
+      }
     }
   }
 

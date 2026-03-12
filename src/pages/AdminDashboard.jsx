@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { fetchAllUsers, adminUpdateUser, adminDeleteUser, fetchActivityLogs } from '../redux/userSlice';
+import { fetchAllUsers, adminUpdateUser, adminDeleteUser, fetchActivityLogs, logout } from '../redux/userSlice';
 import { toast } from 'react-toastify';
 import './AdminDashboard.scss';
 
@@ -80,6 +80,11 @@ const AdminDashboard = () => {
       toast.error(result.payload || 'Failed to update user');
     }
   };
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate('/login');
+    toast.info('Session terminated');
+  };
 
   return (
     <div className="admin-dashboard-container">
@@ -108,8 +113,8 @@ const AdminDashboard = () => {
             <span className="icon">📜</span> Audit Logs
           </button>
           <div className="nav-divider"></div>
-          <button onClick={() => navigate('/home')}>
-            <span className="icon">🏠</span> Game Home
+          <button className="logout-btn" onClick={handleLogout}>
+            <span className="icon">🚪</span> Sign Out
           </button>
         </nav>
       </div>

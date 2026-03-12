@@ -322,58 +322,95 @@ const AdminDashboard = () => {
         <div className="modal-overlay">
           <div className="modal-content animate-pop-in">
             <div className="modal-header">
-              <h2>Edit User Entity</h2>
+              <div className="title-area">
+                <span className="modal-icon">👤</span>
+                <div>
+                  <h2>Edit Security Entity</h2>
+                  <p>Modifying credentials for <strong>{editingUser?.username}</strong></p>
+                </div>
+              </div>
               <button className="close-btn" onClick={() => setIsModalOpen(false)}>&times;</button>
             </div>
+            
             <form onSubmit={handleUpdateUser}>
-              <div className="form-group">
-                <label>System Username</label>
-                <input 
-                  type="text" 
-                  value={formData.username}
-                  onChange={(e) => setFormData({...formData, username: e.target.value})}
-                  required
-                />
+              <div className="form-sections">
+                <div className="form-section">
+                  <h4 className="section-title">Identity & Access</h4>
+                  <div className="form-group">
+                    <label>System Username</label>
+                    <div className="input-wrapper">
+                      <span className="input-icon">@</span>
+                      <input 
+                        type="text" 
+                        value={formData.username}
+                        onChange={(e) => setFormData({...formData, username: e.target.value})}
+                        required
+                        placeholder="Enter username"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="form-section">
+                  <h4 className="section-title">In-Game Economy & Stats</h4>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>Lifetime Score</label>
+                      <div className="input-wrapper">
+                        <span className="input-icon">🔥</span>
+                        <input 
+                          type="number" 
+                          value={formData.score}
+                          onChange={(e) => setFormData({...formData, score: parseInt(e.target.value) || 0})}
+                          required
+                        />
+                      </div>
+                    </div>
+                    <div className="form-group">
+                      <label>Admin Privilege</label>
+                      <div className="switch-wrapper">
+                        <label className="switch">
+                          <input 
+                            type="checkbox" 
+                            checked={formData.isAdmin}
+                            onChange={(e) => setFormData({...formData, isAdmin: e.target.checked})}
+                          />
+                          <span className="slider round"></span>
+                        </label>
+                        <span className="switch-label">{formData.isAdmin ? 'Enabled' : 'Disabled'}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>Fruits (Carrots)</label>
+                      <div className="input-wrapper">
+                        <span className="input-icon">🥕</span>
+                        <input 
+                          type="number" 
+                          value={formData.carrots}
+                          onChange={(e) => setFormData({...formData, carrots: parseInt(e.target.value) || 0})}
+                        />
+                      </div>
+                    </div>
+                    <div className="form-group">
+                      <label>Hearts Remaining</label>
+                      <div className="input-wrapper">
+                        <span className="input-icon">❤️</span>
+                        <input 
+                          type="number" 
+                          value={formData.hearts}
+                          onChange={(e) => setFormData({...formData, hearts: parseInt(e.target.value) || 0})}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Lifetime Score</label>
-                  <input 
-                    type="number" 
-                    value={formData.score}
-                    onChange={(e) => setFormData({...formData, score: parseInt(e.target.value)})}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Carrots</label>
-                  <input 
-                    type="number" 
-                    value={formData.carrots}
-                    onChange={(e) => setFormData({...formData, carrots: parseInt(e.target.value)})}
-                  />
-                </div>
-              </div>
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Hearts Remaining</label>
-                  <input 
-                    type="number" 
-                    value={formData.hearts}
-                    onChange={(e) => setFormData({...formData, hearts: parseInt(e.target.value)})}
-                  />
-                </div>
-                <div className="form-group checkbox">
-                   <label>Administrator Privilege</label>
-                   <input 
-                    type="checkbox" 
-                    checked={formData.isAdmin}
-                    onChange={(e) => setFormData({...formData, isAdmin: e.target.checked})}
-                   />
-                </div>
-              </div>
+
               <div className="modal-actions">
-                <button type="button" className="cancel-btn" onClick={() => setIsModalOpen(false)}>Cancel</button>
+                <button type="button" className="cancel-btn" onClick={() => setIsModalOpen(false)}>Discard</button>
                 <button type="submit" className="save-btn">Commit Changes</button>
               </div>
             </form>

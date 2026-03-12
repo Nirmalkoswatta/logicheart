@@ -26,6 +26,11 @@ const AdminRoute = ({ children }) => {
   return currentUser && currentUser.isAdmin ? children : <Navigate to="/home" />;
 };
 
+// Public Route Component
+const PublicRoute = ({ children }) => {
+  return children;
+};
+
 function App() {
   const [loading, setLoading] = useState(true);
 

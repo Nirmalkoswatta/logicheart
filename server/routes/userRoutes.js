@@ -238,20 +238,28 @@ router.post(
 router.post(
   '/login',
   asyncHandler(async (req, res) => {
-    const { email, password } = req.body;
+    const { email, password } = req.body; // 'email' field might contain username
 
-    // Normalize email to lowercase
-    const normalizedEmail = email.toLowerCase().trim();
+    // Normalize input
+    const loginIdentifier = email.toLowerCase().trim();
 
-    // Check for user email
-    const user = await User.findOne({ email: normalizedEmail });
+    // Check for user by email OR username
+    const user = await User.findOne({
+      $or: [
+        { email: loginIdentifier },
+        { username: { $regex: new RegExp('^' + loginIdentifier + '$', 'i') } }
+      ]
+    });
 
     if (user && (await bcrypt.compare(password, user.password))) {
       if (!user.isVerified) {
-        // Optional: Resend OTP here if you want
         res.status(401);
         throw new Error('Please verify your email first.');
       }
+
+      // Log activity (optional: only for sensitive actions or all logins)
+      // For now, let's focus on admin functionality elsewhere, 
+      // but we can log user login if needed.
 
       res.json({
         _id: user.id,

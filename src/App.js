@@ -11,6 +11,7 @@ import Game from './pages/Game';
 import Leaderboard from './pages/Leaderboard';
 import Settings from './pages/Settings';
 import LoadingScreen from './components/LoadingScreen';
+import AdminDashboard from './pages/AdminDashboard';
 import './App.scss';
 
 // Protected Route Component
@@ -19,9 +20,10 @@ const ProtectedRoute = ({ children }) => {
   return currentUser ? children : <Navigate to="/login" />;
 };
 
-// Public Route Component
-const PublicRoute = ({ children }) => {
-  return children;
+// Admin Route Component
+const AdminRoute = ({ children }) => {
+  const { currentUser } = useSelector((state) => state.user);
+  return currentUser && currentUser.isAdmin ? children : <Navigate to="/home" />;
 };
 
 function App() {
@@ -89,6 +91,14 @@ function App() {
              <ProtectedRoute>
               <Settings />
              </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <AdminRoute>
+              <AdminDashboard />
+            </AdminRoute>
           }
         />
       </Routes>

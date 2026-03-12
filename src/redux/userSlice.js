@@ -146,7 +146,71 @@ export const deleteUser = createAsyncThunk(
   }
 );
 
-// --- Slice ---
+// --- Admin Async Thunks ---
+
+// Fetch All Users
+export const fetchAllUsers = createAsyncThunk(
+  'admin/fetchAllUsers',
+  async (_, { getState, rejectWithValue }) => {
+    try {
+      const { user } = getState();
+      const response = await axios.get(`${API_BASE_URL}/admin/users`, {
+        headers: { Authorization: `Bearer ${user.currentUser.token}` }
+      });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch users');
+    }
+  }
+);
+
+// Update Any User (Admin)
+export const adminUpdateUser = createAsyncThunk(
+  'admin/updateUser',
+  async ({ userId, userData }, { getState, rejectWithValue }) => {
+    try {
+      const { user } = getState();
+      const response = await axios.put(`${API_BASE_URL}/admin/users/${userId}`, userData, {
+        headers: { Authorization: `Bearer ${user.currentUser.token}` }
+      });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to update user');
+    }
+  }
+);
+
+// Delete Any User (Admin)
+export const adminDeleteUser = createAsyncThunk(
+  'admin/deleteUser',
+  async (userId, { getState, rejectWithValue }) => {
+    try {
+      const { user } = getState();
+      await axios.delete(`${API_BASE_URL}/admin/users/${userId}`, {
+        headers: { Authorization: `Bearer ${user.currentUser.token}` }
+      });
+      return userId;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to delete user');
+    }
+  }
+);
+
+// Fetch Activity Logs
+export const fetchActivityLogs = createAsyncThunk(
+  'admin/fetchLogs',
+  async (_, { getState, rejectWithValue }) => {
+    try {
+      const { user } = getState();
+      const response = await axios.get(`${API_BASE_URL}/admin/logs`, {
+        headers: { Authorization: `Bearer ${user.currentUser.token}` }
+      });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch logs');
+    }
+  }
+);
 
 const userHelpers = (builder, thunk) => {
     builder
@@ -168,6 +232,8 @@ const initialState = {
   currentUser: localStorage.getItem('user')
     ? JSON.parse(localStorage.getItem('user'))
     : null,
+  adminUsers: [],
+  activityLogs: [],
   loading: false,
   error: null,
 };
@@ -225,20 +291,35 @@ const userSlice = createSlice({
     userHelpers(builder, reduceAttempts);
     userHelpers(builder, resetGame);
     
-    // Custom handler for delete to ensure cleanup
+    // Admin Handlers
     builder
-      .addCase(deleteUser.pending, (state) => {
-        state.loading = true;
-      })
-      .addCase(deleteUser.fulfilled, (state) => {
+      .addCase(fetchAllUsers.fulfilled, (state, action) => {
+        state.adminUsers = action.payload;
         state.loading = false;
-        state.currentUser = null;
-        state.error = null;
       })
-      .addCase(deleteUser.rejected, (state, action) => {
+      .addCase(adminUpdateUser.fulfilled, (state, action) => {
+        state.adminUsers = state.adminUsers.map(u => 
+          u._id === action.payload._id ? action.payload : u
+        );
         state.loading = false;
-        state.error = action.payload;
-      });
+      })
+      .addCase(adminDeleteUser.fulfilled, (state, action) => {
+        state.adminUsers = state.adminUsers.filter(u => u._id !== action.payload);
+        state.loading = false;
+      })
+      .addCase(fetchActivityLogs.fulfilled, (state, action) => {
+        state.activityLogs = action.payload;
+        state.loading = false;
+      })
+      // Add pending/rejected for admin actions if needed, or use a general helper
+      .addMatcher(
+        (action) => action.type.startsWith('admin/') && action.type.endsWith('/pending'),
+        (state) => { state.loading = true; state.error = null; }
+      )
+      .addMatcher(
+        (action) => action.type.startsWith('admin/') && action.type.endsWith('/rejected'),
+        (state, action) => { state.loading = false; state.error = action.payload; }
+      );
   },
 });
 

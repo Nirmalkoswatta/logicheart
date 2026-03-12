@@ -46,6 +46,7 @@ app.use((req, res, next) => {
 // Routes
 app.use('/api/users', userRoutes);
 app.use('/api/game', require('./routes/gameRoutes'));
+app.use('/api/admin', require('./routes/adminRoutes'));
 
 app.get('/', (req, res) => {
   res.send('LogicHeart API is running...');

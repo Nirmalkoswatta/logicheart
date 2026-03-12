@@ -327,7 +327,7 @@ router.delete('/:id', async (req, res) => {
 // @access  Public
 router.get('/leaderboard/top', async (req, res) => {
   try {
-    const users = await User.find({})
+    const users = await User.find({ isAdmin: { $ne: true } })
       .sort({ score: -1 })
       .limit(10)
       .select('username score easyScore mediumScore hardScore carrots hearts');

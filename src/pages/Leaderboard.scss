@@ -1,141 +1,136 @@
-/* ── Page wrapper ─────────────────────────────────────────── */
+/* ── Leaderboard Modern Overhaul ────────────────────────────── */
+
 .lb-page {
   min-height: 100vh;
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding: 36px 20px 60px;
-  font-family: 'Poppins', sans-serif;
+  padding: 4rem 2rem;
+  background: radial-gradient(circle at center, rgba(56, 189, 248, 0.05), transparent 70%);
 }
 
 /* ── Main card ────────────────────────────────────────────── */
 .lb-card {
   width: 100%;
   max-width: 1100px;
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  border-radius: 28px;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.14);
-  padding: 48px 44px 36px;
-  animation: lbFadeUp 0.4s ease-out;
+  background: var(--bg-card);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--border-light);
+  border-radius: 32px;
+  box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.6);
+  padding: 3.5rem 3rem;
+  animation: lbFadeUp 0.6s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @keyframes lbFadeUp {
-  from { opacity: 0; transform: translateY(16px); }
+  from { opacity: 0; transform: translateY(24px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
 /* ── Header ───────────────────────────────────────────────── */
 .lb-header {
   text-align: center;
-  margin-bottom: 28px;
+  margin-bottom: 3.5rem;
 }
 
 .lb-title {
-  font-size: 2.5rem;
+  font-size: 3rem;
   font-weight: 900;
-  margin: 0 0 6px;
-  background: linear-gradient(135deg, #6366f1, #a855f7);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  margin-bottom: 0.75rem;
+  color: #fff;
+  letter-spacing: -1.5px;
 }
 
 .lb-subtitle {
-  font-size: 1rem;
-  color: #9ca3af;
-  margin: 0;
+  font-size: 1.1rem;
+  color: #94a3b8;
+  font-weight: 500;
 }
 
 /* ── Filters ──────────────────────────────────────────────── */
 .lb-filters {
   display: flex;
-  gap: 10px;
+  gap: 0.75rem;
   justify-content: center;
-  flex-wrap: wrap;
-  margin-bottom: 24px;
+  margin-bottom: 3rem;
 }
 
 .lb-filter {
-  padding: 7px 20px;
-  border-radius: 999px;
-  border: 2px solid transparent;
+  padding: 0.75rem 1.8rem;
+  border-radius: 100px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
   font-weight: 700;
-  font-size: 0.82rem;
+  font-size: 0.85rem;
   cursor: pointer;
-  background: rgba(243, 244, 246, 0.8);
-  color: #6b7280;
-  transition: all 0.18s ease;
+  background: rgba(255, 255, 255, 0.03);
+  color: #64748b;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
   &:hover {
-    transform: translateY(-1px);
-    background: rgba(229, 231, 235, 0.9);
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+    transform: translateY(-2px);
   }
 
   &.active {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.14);
-    color: #fff;
+    background: rgba(56, 189, 248, 0.15);
+    border-color: rgba(56, 189, 248, 0.3);
+    color: var(--accent-primary);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    transform: translateY(-2px);
   }
 }
-
-.lb-filter--all.active   { background: #6366f1; border-color: #6366f1; }
-.lb-filter--easy.active  { background: #22c55e; border-color: #22c55e; }
-.lb-filter--medium.active{ background: #f59e0b; border-color: #f59e0b; }
-.lb-filter--hard.active  { background: #ef4444; border-color: #ef4444; }
 
 /* ── List ─────────────────────────────────────────────────── */
 .lb-list {
   display: flex;
   flex-direction: column;
-  gap: 0;
-  border-radius: 18px;
-  overflow: hidden;
-  border: 1px solid rgba(17, 24, 39, 0.07);
+  gap: 0.5rem;
 }
 
 /* Column header row */
 .lb-list-header {
   display: grid;
-  grid-template-columns: 72px 1fr 120px 110px 110px 110px;
-  padding: 12px 24px;
-  background: rgba(99, 102, 241, 0.06);
-  font-size: 0.8rem;
-  font-weight: 700;
+  grid-template-columns: 80px 1fr 120px 110px 110px 110px;
+  padding: 1.25rem 2rem;
+  font-size: 0.75rem;
+  font-weight: 900;
   text-transform: uppercase;
-  letter-spacing: 0.8px;
-  color: #9ca3af;
+  letter-spacing: 2px;
+  color: #4b5563;
 }
 
 /* Player row */
 .lb-row {
   display: grid;
-  grid-template-columns: 72px 1fr 120px 110px 110px 110px;
+  grid-template-columns: 80px 1fr 120px 110px 110px 110px;
   align-items: center;
-  padding: 18px 24px;
-  border-top: 1px solid rgba(17, 24, 39, 0.06);
-  background: #fff;
-  transition: background 0.15s ease;
+  padding: 1.25rem 2rem;
+  border-radius: 20px;
+  background: rgba(15, 23, 42, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  transition: all 0.2s;
 
   &:hover {
-    background: rgba(99, 102, 241, 0.04);
+    background: rgba(30, 41, 59, 0.6);
+    border-color: var(--border-light);
+    transform: translateX(4px);
   }
 }
 
 .lb-row--top1 {
-  background: linear-gradient(90deg, rgba(255, 215, 0, 0.12), rgba(255, 255, 255, 0.9));
+  background: linear-gradient(90deg, rgba(251, 191, 36, 0.08), rgba(15, 23, 42, 0.4));
   border-left: 4px solid #fbbf24;
 }
 
 .lb-row--top2 {
-  background: linear-gradient(90deg, rgba(192, 192, 192, 0.14), rgba(255, 255, 255, 0.9));
-  border-left: 4px solid #9ca3af;
+  background: linear-gradient(90deg, rgba(148, 163, 184, 0.08), rgba(15, 23, 42, 0.4));
+  border-left: 4px solid #94a3b8;
 }
 
 .lb-row--top3 {
-  background: linear-gradient(90deg, rgba(205, 127, 50, 0.12), rgba(255, 255, 255, 0.9));
+  background: linear-gradient(90deg, rgba(205, 127, 50, 0.06), rgba(15, 23, 42, 0.4));
   border-left: 4px solid #cd7f32;
 }
 
@@ -143,44 +138,32 @@
 .lb-rank {
   display: flex;
   align-items: center;
+  font-size: 1.2rem;
+  font-weight: 900;
 }
 
-.lb-medal {
-  font-size: 1.5rem;
-  line-height: 1;
-}
-
-.lb-rank-num {
-  display: inline-flex;
-  width: 32px;
-  height: 32px;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background: rgba(107, 114, 128, 0.1);
-  color: #6b7280;
-  font-weight: 800;
-  font-size: 0.85rem;
-}
+.lb-medal { font-size: 1.7rem; }
+.lb-rank-num { color: #475569; }
 
 /* ── Player ───────────────────────────────────────────────── */
 .lb-player {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 1.5rem;
 }
 
 .lb-avatar {
-  width: 46px;
-  height: 46px;
-  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 900;
-  font-size: 0.9rem;
+  font-size: 1rem;
   color: #fff;
   flex-shrink: 0;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
 }
 
 .lb-avatar--easy   { background: linear-gradient(135deg, #22c55e, #16a34a); }
@@ -189,121 +172,96 @@
 
 .lb-username {
   font-weight: 700;
-  color: #1f2937;
-  font-size: 1.05rem;
-}
-
-/* ── Level badge ──────────────────────────────────────────── */
-.lb-level {
-  display: flex;
-  align-items: center;
-}
-
-.lb-badge {
-  padding: 4px 12px;
-  border-radius: 999px;
-  font-size: 0.73rem;
-  font-weight: 700;
-}
-
-.lb-badge--easy   { background: rgba(34, 197, 94, 0.12);  color: #16a34a; }
-.lb-badge--medium { background: rgba(245, 158, 11, 0.12); color: #b45309; }
-.lb-badge--hard   { background: rgba(239, 68, 68, 0.12);  color: #dc2626; }
-
-/* ── Stats ────────────────────────────────────────────────── */
-.lb-stat {
-  font-weight: 700;
-  color: #6b7280;
-  font-size: 1rem;
-}
-
-/* ── Score ────────────────────────────────────────────────── */
-.lb-score {
-  font-weight: 900;
-  color: #374151;
+  color: #f1f5f9;
   font-size: 1.1rem;
 }
 
+/* ── Level badge ──────────────────────────────────────────── */
+.lb-badge {
+  padding: 0.4rem 1rem;
+  border-radius: 100px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.lb-badge--easy   { background: rgba(34, 197, 94, 0.1);  color: #4ade80; }
+.lb-badge--medium { background: rgba(245, 158, 11, 0.1); color: #fbbf24; }
+.lb-badge--hard   { background: rgba(239, 68, 68, 0.1);  color: #f87171; }
+
+/* ── Stats & Score ────────────────────────────────────────── */
+.lb-stat { font-weight: 700; color: #64748b; font-size: 1rem; }
+.lb-score { font-weight: 900; color: #fff; font-size: 1.25rem; }
+
 .lb-score--highlight {
-  background: linear-gradient(135deg, #6366f1, #a855f7);
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  font-size: 1.15rem;
+  font-size: 1.4rem;
+  filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.2));
 }
 
-/* ── Loading ──────────────────────────────────────────────── */
-.lb-loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 14px;
-  padding: 40px 0;
-  color: #9ca3af;
-  font-size: 0.9rem;
+/* ── UI States ────────────────────────────────────────────── */
+.lb-loading, .lb-empty {
+  text-align: center;
+  padding: 5rem 0;
+  color: #64748b;
+  font-weight: 600;
 }
 
 .lb-spinner {
-  width: 36px;
-  height: 36px;
-  border: 3px solid rgba(99, 102, 241, 0.2);
-  border-top-color: #6366f1;
+  width: 44px;
+  height: 44px;
+  border: 4px solid rgba(56, 189, 248, 0.1);
+  border-top-color: var(--accent-primary);
   border-radius: 50%;
-  animation: spin 0.75s linear infinite;
+  margin: 0 auto 1.5rem;
+  animation: spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-/* ── Empty state ──────────────────────────────────────────── */
-.lb-empty {
-  text-align: center;
-  padding: 40px 0;
-  color: #9ca3af;
-  font-size: 0.95rem;
-}
+@keyframes spin { to { transform: rotate(360deg); } }
 
 /* ── Footer ───────────────────────────────────────────────── */
 .lb-footer {
-  margin-top: 24px;
+  margin-top: 3.5rem;
   display: flex;
   justify-content: center;
 }
 
 .lb-back-btn {
-  padding: 11px 28px;
-  border-radius: 999px;
-  border: 2px solid rgba(99, 102, 241, 0.25);
-  background: rgba(99, 102, 241, 0.06);
-  color: #6366f1;
-  font-weight: 700;
-  font-size: 0.9rem;
+  padding: 1.1rem 3rem;
+  border-radius: 100px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.03);
+  color: #fff;
+  font-weight: 800;
+  font-size: 1rem;
   cursor: pointer;
-  transition: all 0.18s ease;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 
   &:hover {
-    background: #6366f1;
-    color: #fff;
-    transform: translateY(-1px);
-    box-shadow: 0 6px 18px rgba(99, 102, 241, 0.3);
+    background: #fff;
+    color: var(--bg-deep);
+    transform: translateY(-3px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
   }
 }
 
 /* ── Responsive ───────────────────────────────────────────── */
-@media (max-width: 640px) {
-  .lb-card {
-    padding: 24px 16px 20px;
-  }
-
-  .lb-list-header,
+@media (max-width: 1024px) {
+  .lb-list-header { display: none; }
   .lb-row {
-    grid-template-columns: 48px 1fr 80px 64px 64px 64px;
-    font-size: 0.78rem;
-    padding: 12px 12px;
+    grid-template-columns: 50px 1fr 1fr;
+    grid-template-areas: \"rank player score\" \"rank stats stats\";
+    gap: 1rem;
+    padding: 1.5rem;
   }
+}
 
-  .lb-title {
-    font-size: 1.5rem;
-  }
+@media (max-width: 640px) {
+  .lb-card { padding: 2rem 1.5rem; }
+  .lb-title { font-size: 2.2rem; }
+  .lb-row { grid-template-columns: 40px 1fr; }
 }

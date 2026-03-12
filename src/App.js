@@ -26,8 +26,14 @@ const AdminRoute = ({ children }) => {
   return currentUser && currentUser.isAdmin ? children : <Navigate to="/home" />;
 };
 
-// Public Route Component
+// Public Route Component (Redirects authenticated users)
 const PublicRoute = ({ children }) => {
+  const { currentUser } = useSelector((state) => state.user);
+  
+  if (currentUser) {
+    return currentUser.isAdmin ? <Navigate to="/admin" /> : <Navigate to="/home" />;
+  }
+  
   return children;
 };
 

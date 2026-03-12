@@ -18,7 +18,11 @@ const Login = () => {
     dispatch(clearError());
     const result = await dispatch(loginUser({ email, password }));
     if (result.meta.requestStatus === 'fulfilled') {
-      navigate('/home');
+      if (result.payload.isAdmin) {
+        navigate('/admin');
+      } else {
+        navigate('/home');
+      }
     } else if (result.meta.requestStatus === 'rejected') {
       if (result.payload === 'Please verify your email first.') {
         toast.info("Please verify your email. Redirecting...");

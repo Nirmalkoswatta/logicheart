@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import VerifyOTP from './pages/VerifyOTP';
@@ -12,6 +12,7 @@ import Leaderboard from './pages/Leaderboard';
 import Settings from './pages/Settings';
 import LoadingScreen from './components/LoadingScreen';
 import AdminDashboard from './pages/AdminDashboard';
+import { syncPresence } from './redux/userSlice';
 import './App.scss';
 
 // Protected Route Component
@@ -29,16 +30,34 @@ const AdminRoute = ({ children }) => {
 // Public Route Component (Redirects authenticated users)
 const PublicRoute = ({ children }) => {
   const { currentUser } = useSelector((state) => state.user);
-  
+
   if (currentUser) {
     return currentUser.isAdmin ? <Navigate to="/admin" /> : <Navigate to="/home" />;
   }
-  
+
   return children;
 };
 
 function App() {
   const [loading, setLoading] = useState(true);
+  const dispatch = useDispatch();
+  const { currentUser } = useSelector((state) => state.user);
+
+  useEffect(() => {
+    if (!currentUser?._id) {
+      return undefined;
+    }
+
+    dispatch(syncPresence(currentUser._id));
+
+    const intervalId = window.setInterval(() => {
+      dispatch(syncPresence(currentUser._id));
+    }, 60000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [currentUser?._id, dispatch]);
 
   if (loading) {
     return <LoadingScreen onLoaded={() => setLoading(false)} />;
@@ -99,9 +118,9 @@ function App() {
         <Route
           path="/settings"
           element={
-             <ProtectedRoute>
+            <ProtectedRoute>
               <Settings />
-             </ProtectedRoute>
+            </ProtectedRoute>
           }
         />
         <Route

@@ -1,13 +1,14 @@
 import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { logout } from '../redux/userSlice';
+import { logoutUser } from '../redux/userSlice';
+import { toast } from 'react-toastify';
 import './Home.scss';
 
 const NAV_ITEMS = [
-  { label: 'Home',        icon: '🏠', path: '/home' },
+  { label: 'Home', icon: '🏠', path: '/home' },
   { label: 'Leaderboard', icon: '🏆', path: '/leaderboard' },
-  { label: 'Settings',    icon: '⚙️',  path: '/settings' },
+  { label: 'Settings', icon: '⚙️', path: '/settings' },
 ];
 
 const Home = () => {
@@ -19,18 +20,20 @@ const Home = () => {
     if (!currentUser) navigate('/login');
   }, [currentUser, navigate]);
 
-  const handleLogout = () => {
-    dispatch(logout());
+  const handleLogout = async () => {
+    await dispatch(logoutUser());
+    toast.info('Logged out successfully.');
+
     navigate('/login');
   };
 
   if (!currentUser) return null;
 
-  const rawScore    = typeof currentUser.score    === 'number' ? currentUser.score    : Number(currentUser.score);
-  const scoreValue  = Number.isFinite(rawScore)   ? rawScore   : null;
+  const rawScore = typeof currentUser.score === 'number' ? currentUser.score : Number(currentUser.score);
+  const scoreValue = Number.isFinite(rawScore) ? rawScore : null;
   const rawAttempts = typeof currentUser.attempts === 'number' ? currentUser.attempts : Number(currentUser.attempts);
   const attemptsValue = Number.isFinite(rawAttempts) ? rawAttempts : 0;
-  const levelValue  = scoreValue === null ? 'N/A' : Math.floor(scoreValue / 50) + 1;
+  const levelValue = scoreValue === null ? 'N/A' : Math.floor(scoreValue / 50) + 1;
 
   return (
     <div className="hd-root">

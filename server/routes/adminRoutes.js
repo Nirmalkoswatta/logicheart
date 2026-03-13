@@ -13,7 +13,7 @@ const adminOnly = asyncHandler(async (req, res, next) => {
       token = req.headers.authorization.split(' ')[1];
       const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret123');
       const user = await User.findById(decoded.id).select('-password');
-      
+
       if (user && user.isAdmin) {
         req.user = user;
         next();
@@ -34,12 +34,13 @@ const adminOnly = asyncHandler(async (req, res, next) => {
 });
 
 // Helper for logging admin actions
-const logAction = async (userId, username, action, details) => {
+const logAction = async (userId, username, action, details, extra = {}) => {
   await ActivityLog.create({
     user: userId,
     username,
     action,
-    details
+    details,
+    ...extra,
   });
 };
 
@@ -66,12 +67,19 @@ router.put('/users/:id', adminOnly, asyncHandler(async (req, res) => {
     user.hearts = req.body.hearts !== undefined ? req.body.hearts : user.hearts;
 
     const updatedUser = await user.save();
-    
+
     await logAction(
-      req.user._id, 
-      req.user.username, 
-      'UPDATE_USER', 
-      `Updated user ${user.username} (ID: ${user._id})`
+      req.user._id,
+      req.user.username,
+      'UPDATE_USER',
+      `Updated user ${user.username} (${user.email})`,
+      {
+        email: req.user.email || '',
+        targetId: user._id,
+        targetUsername: user.username,
+        targetEmail: user.email,
+        ipAddress: req.ip,
+      }
     );
 
     res.json(updatedUser);
@@ -92,14 +100,29 @@ router.delete('/users/:id', adminOnly, asyncHandler(async (req, res) => {
       res.status(400);
       throw new Error('Cannot delete protected admin account');
     }
-    
+
     await User.deleteOne({ _id: req.params.id });
-    
+
     await logAction(
-      req.user._id, 
-      req.user.username, 
-      'DELETE_USER', 
-      `Deleted user ${user.username} (ID: ${user._id})`
+      req.user._id,
+      req.user.username,
+      'DELETE_USER',
+      `Admin deleted user ${user.username} (${user.email})`,
+      {
+        email: req.user.email || '',
+        targetId: user._id,
+        targetUsername: user.username,
+        targetEmail: user.email,
+        metadata: {
+          score: user.score,
+          carrots: user.carrots,
+          hearts: user.hearts,
+          wasOnline: user.isOnline,
+          lastLoginAt: user.lastLoginAt,
+          lastSeenAt: user.lastSeenAt,
+        },
+        ipAddress: req.ip,
+      }
     );
 
     res.json({ message: 'User removed' });
@@ -113,7 +136,7 @@ router.delete('/users/:id', adminOnly, asyncHandler(async (req, res) => {
 // @route   GET /api/admin/logs
 // @access  Private/Admin
 router.get('/logs', adminOnly, asyncHandler(async (req, res) => {
-  const logs = await ActivityLog.find({}).sort({ createdAt: -1 }).limit(100);
+  const logs = await ActivityLog.find({}).sort({ createdAt: -1 }).limit(300);
   res.json(logs);
 }));
 

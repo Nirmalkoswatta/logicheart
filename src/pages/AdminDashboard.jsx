@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { fetchAllUsers, adminUpdateUser, adminDeleteUser, fetchActivityLogs, logout } from '../redux/userSlice';
+import { fetchAllUsers, adminUpdateUser, adminDeleteUser, fetchActivityLogs, logoutUser } from '../redux/userSlice';
 import { toast } from 'react-toastify';
 import './AdminDashboard.scss';
 
@@ -10,28 +10,141 @@ const AdminDashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [editingUser, setEditingUser] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [formData, setFormData] = useState({ 
-    username: '', 
-    score: 0, 
-    carrots: 0, 
-    hearts: 0, 
-    isAdmin: false 
+  const [formData, setFormData] = useState({
+    username: '',
+    score: 0,
+    carrots: 0,
+    hearts: 0,
+    isAdmin: false
   });
+  const [logFilter, setLogFilter] = useState('all');
+  const [logSearch, setLogSearch] = useState('');
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { adminUsers, activityLogs, loading, currentUser } = useSelector((state) => state.user);
+
+  const getActionCategory = (action) => {
+    if (!action) return 'other';
+    if (action.includes('LOGIN') || action.includes('LOGOUT')) return 'session';
+    if (action.includes('PASSWORD')) return 'password';
+    if (action.includes('REGISTER') || action.includes('VERIFIED')) return 'register';
+    if (action.includes('DELETE')) return 'delete';
+    if (action.includes('GAME') || action.includes('PLAYED')) return 'game';
+    if (action.includes('UPDATE')) return 'update';
+    return 'other';
+  };
+
+  const getActionIcon = (action) => {
+    if (!action) return '📝';
+    if (action.includes('LOGOUT')) return '🚪';
+    if (action.includes('LOGIN')) return '🔑';
+    if (action.includes('PASSWORD')) return '🔐';
+    if (action.includes('REGISTER') || action.includes('VERIFIED')) return '✅';
+    if (action.includes('DELETE')) return '🗑️';
+    if (action.includes('GAME') || action.includes('PLAYED')) return '🎮';
+    if (action.includes('UPDATE')) return '✏️';
+    return '📝';
+  };
+
+  const formatActionLabel = (action) => action?.replace(/_/g, ' ') || 'Activity';
+
+  const formatDateTime = (dateStr) => {
+    if (!dateStr) return 'Not available';
+
+    return new Date(dateStr).toLocaleString([], {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  const getRelativeTime = (dateStr) => {
+    const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000);
+    if (diff < 60) return `${diff}s ago`;
+    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+    return `${Math.floor(diff / 86400)}d ago`;
+  };
+
+  const formatPlaytime = (secs) => {
+    if (!secs) return null;
+    const h = Math.floor(secs / 3600);
+    const m = Math.floor((secs % 3600) / 60);
+    const s = secs % 60;
+    if (h > 0) return `${h}h ${m}m`;
+    if (m > 0) return `${m}m ${s}s`;
+    return `${s}s`;
+  };
+
+  const hasOpenSession = (user) => {
+    if (!user?.lastLoginAt) {
+      return false;
+    }
+
+    if (!user.lastLogoutAt) {
+      return true;
+    }
+
+    return new Date(user.lastLoginAt).getTime() > new Date(user.lastLogoutAt).getTime();
+  };
+
+  const onlineUsers = [...adminUsers]
+    .filter((user) => Boolean(user.isOnline) || hasOpenSession(user))
+    .sort((left, right) => {
+      const leftSeen = left.lastSeenAt
+        ? new Date(left.lastSeenAt).getTime()
+        : (left.lastLoginAt ? new Date(left.lastLoginAt).getTime() : 0);
+      const rightSeen = right.lastSeenAt
+        ? new Date(right.lastSeenAt).getTime()
+        : (right.lastLoginAt ? new Date(right.lastLoginAt).getTime() : 0);
+      return rightSeen - leftSeen;
+    });
+
+  const auditStats = {
+    onlineUsers: onlineUsers.length,
+    sessionEvents: activityLogs.filter((log) => getActionCategory(log.action) === 'session').length,
+    passwordEvents: activityLogs.filter((log) => getActionCategory(log.action) === 'password').length,
+    deleteEvents: activityLogs.filter((log) => getActionCategory(log.action) === 'delete').length,
+  };
+
+  const filteredLogs = activityLogs.filter(log => {
+    const cat = getActionCategory(log.action);
+    const matchesFilter = logFilter === 'all' || cat === logFilter;
+    const term = logSearch.toLowerCase();
+    const matchesSearch = !logSearch ||
+      log.action?.toLowerCase().includes(term) ||
+      log.username?.toLowerCase().includes(term) ||
+      log.email?.toLowerCase().includes(term) ||
+      log.targetUsername?.toLowerCase().includes(term) ||
+      log.targetEmail?.toLowerCase().includes(term) ||
+      log.details?.toLowerCase().includes(term);
+    return matchesFilter && matchesSearch;
+  });
 
   useEffect(() => {
     if (!currentUser || !currentUser.isAdmin) {
       navigate('/login');
       return;
     }
-    dispatch(fetchAllUsers());
-    dispatch(fetchActivityLogs());
+
+    const loadAdminData = () => {
+      dispatch(fetchAllUsers());
+      dispatch(fetchActivityLogs());
+    };
+
+    loadAdminData();
+
+    const refreshId = window.setInterval(loadAdminData, 10000);
+
+    return () => {
+      window.clearInterval(refreshId);
+    };
   }, [dispatch, currentUser, navigate]);
 
-  const filteredUsers = adminUsers.filter(user => 
+  const filteredUsers = adminUsers.filter(user =>
     user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -41,12 +154,14 @@ const AdminDashboard = () => {
     verifiedUsers: adminUsers.filter(u => u.isVerified).length,
     admins: adminUsers.filter(u => u.isAdmin).length,
     topScore: adminUsers.length > 0 ? Math.max(...adminUsers.map(u => u.score || 0)) : 0,
+    onlineUsers: onlineUsers.length,
   };
 
   const handleDeleteUser = async (id) => {
     if (window.confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
       const result = await dispatch(adminDeleteUser(id));
       if (result.meta.requestStatus === 'fulfilled') {
+        dispatch(fetchActivityLogs());
         toast.success('User purged from database');
       } else {
         toast.error(result.payload || 'Failed to delete user');
@@ -68,22 +183,30 @@ const AdminDashboard = () => {
 
   const handleUpdateUser = async (e) => {
     e.preventDefault();
-    const result = await dispatch(adminUpdateUser({ 
-      userId: editingUser._id, 
-      userData: formData 
+    const result = await dispatch(adminUpdateUser({
+      userId: editingUser._id,
+      userData: formData
     }));
 
     if (result.meta.requestStatus === 'fulfilled') {
+      dispatch(fetchActivityLogs());
       toast.success('User metadata updated');
       setIsModalOpen(false);
     } else {
       toast.error(result.payload || 'Failed to update user');
     }
   };
-  const handleLogout = () => {
-    dispatch(logout());
-    navigate('/login');
+  const handleLogout = async () => {
+    await dispatch(logoutUser());
     toast.info('Session terminated');
+
+    navigate('/login');
+  };
+
+  const handleRefreshLogs = () => {
+    dispatch(fetchAllUsers());
+    dispatch(fetchActivityLogs());
+    toast.info('Live audit data refreshed');
   };
 
   return (
@@ -94,20 +217,20 @@ const AdminDashboard = () => {
           <h2 className="admin-logo">Admin Panel</h2>
         </div>
         <nav>
-          <button 
-            className={activeTab === 'overview' ? 'active' : ''} 
+          <button
+            className={activeTab === 'overview' ? 'active' : ''}
             onClick={() => setActiveTab('overview')}
           >
             <span className="icon">📊</span> Dashboard
           </button>
-          <button 
-            className={activeTab === 'users' ? 'active' : ''} 
+          <button
+            className={activeTab === 'users' ? 'active' : ''}
             onClick={() => setActiveTab('users')}
           >
             <span className="icon">👥</span> User Manager
           </button>
-          <button 
-            className={activeTab === 'logs' ? 'active' : ''} 
+          <button
+            className={activeTab === 'logs' ? 'active' : ''}
             onClick={() => setActiveTab('logs')}
           >
             <span className="icon">📜</span> Audit Logs
@@ -125,7 +248,7 @@ const AdminDashboard = () => {
             <h1>
               {activeTab === 'overview' && 'System Overview'}
               {activeTab === 'users' && 'User Management'}
-              {activeTab === 'logs' && 'System Audit Logs'}
+              {activeTab === 'logs' && 'System Audit & Presence'}
             </h1>
           </div>
           <div className="admin-user-info">
@@ -176,6 +299,13 @@ const AdminDashboard = () => {
                     <div className="stat-label">System High Score</div>
                   </div>
                 </div>
+                <div className="stat-card">
+                  <div className="stat-icon verified">🟢</div>
+                  <div className="stat-content">
+                    <div className="stat-value">{stats.onlineUsers}</div>
+                    <div className="stat-label">Online Right Now</div>
+                  </div>
+                </div>
               </div>
 
               <div className="overview-row">
@@ -187,24 +317,16 @@ const AdminDashboard = () => {
                   <div className="preview-list">
                     {activityLogs.slice(0, 6).map(log => (
                       <div className="preview-item" key={log._id}>
-                        <div className="indicator"></div>
+                        <div className={`indicator indicator-${getActionCategory(log.action)}`}></div>
                         <div className="action-info">
-                          <span className="action">{log.action}</span>
-                          <span className="log-msg">{log.details}</span>
+                          <span className="action">{getActionIcon(log.action)} {log.action?.replace(/_/g, ' ')}</span>
+                          <span className="log-msg">{log.username && `@${log.username} · `}{log.details}</span>
                         </div>
-                        <span className="time">{new Date(log.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                        <span className="time">{getRelativeTime(log.createdAt)}</span>
                       </div>
                     ))}
                     {activityLogs.length === 0 && <p className="no-logs">No recent activity.</p>}
                   </div>
-                </div>
-                
-                <div className="quick-stats card">
-                  <h3>User Health</h3>
-                  <div className="health-bar">
-                    <div className="fill" style={{width: `${(stats.verifiedUsers / (stats.totalUsers || 1)) * 100}%`}}></div>
-                  </div>
-                  <p>{Math.round((stats.verifiedUsers / (stats.totalUsers || 1)) * 100)}% Verification Rate</p>
                 </div>
               </div>
             </div>
@@ -215,9 +337,9 @@ const AdminDashboard = () => {
               <div className="table-controls">
                 <div className="search-bar">
                   <span className="search-icon">🔍</span>
-                  <input 
-                    type="text" 
-                    placeholder="Search users by name or email..." 
+                  <input
+                    type="text"
+                    placeholder="Search users by name or email..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
@@ -267,8 +389,8 @@ const AdminDashboard = () => {
                           <button className="action-btn edit" onClick={() => openEditModal(user)} title="Edit User">
                             ✏️
                           </button>
-                          <button 
-                            className="action-btn delete" 
+                          <button
+                            className="action-btn delete"
                             onClick={() => handleDeleteUser(user._id)}
                             disabled={user.username === 'admin'}
                             title="Delete User"
@@ -287,30 +409,214 @@ const AdminDashboard = () => {
 
           {!loading && activeTab === 'logs' && (
             <div className="logs-view animate-fade-in">
-              <div className="logs-container card">
-                <div className="logs-header">
-                  <h3>Audit Trail</h3>
-                  <span className="log-count">Last {activityLogs.length} entries</span>
+              <div className="logs-hero card">
+                <div className="logs-hero-copy">
+                  <span className="logs-eyebrow">Live oversight</span>
+                  <h3>Audit Trail & Online Users</h3>
+                  <p>
+                    Review active users, login and logout activity, password changes, deleted accounts,
+                    and gameplay sessions from one live console.
+                  </p>
                 </div>
-                <div className="logs-list">
-                  {activityLogs.map((log) => (
-                    <div key={log._id} className="log-row">
-                      <div className="log-stamp">
-                        <span className="date">{new Date(log.createdAt).toLocaleDateString()}</span>
-                        <span className="time">{new Date(log.createdAt).toLocaleTimeString()}</span>
+
+                <div className="logs-hero-stats">
+                  <div className="hero-stat-card">
+                    <span>Online now</span>
+                    <strong>{auditStats.onlineUsers}</strong>
+                  </div>
+                  <div className="hero-stat-card">
+                    <span>Session events</span>
+                    <strong>{auditStats.sessionEvents}</strong>
+                  </div>
+                  <div className="hero-stat-card">
+                    <span>Password updates</span>
+                    <strong>{auditStats.passwordEvents}</strong>
+                  </div>
+                  <div className="hero-stat-card">
+                    <span>Deleted users</span>
+                    <strong>{auditStats.deleteEvents}</strong>
+                  </div>
+                </div>
+              </div>
+
+              <div className="online-users-panel card">
+                <div className="online-users-header">
+                  <div>
+                    <h4>Online Users</h4>
+                    <p>Users with active sessions. Last seen updates automatically.</p>
+                  </div>
+                  <span className="online-users-pill">{onlineUsers.length} active</span>
+                </div>
+
+                {onlineUsers.length > 0 ? (
+                  <div className="online-users-grid">
+                    {onlineUsers.map((user) => (
+                      <div className="online-user-card" key={user._id}>
+                        <div className="online-user-main">
+                          <div className="online-user-avatar">{user.username?.charAt(0).toUpperCase()}</div>
+                          <div className="online-user-copy">
+                            <span className="online-user-name">@{user.username}</span>
+                            <span className="online-user-email">{user.email}</span>
+                          </div>
+                        </div>
+                        <div className="online-user-meta">
+                          <span className="online-user-status">Online now</span>
+                          {user.lastSeenAt && (
+                            <span>Last seen {getRelativeTime(user.lastSeenAt)}</span>
+                          )}
+                          {user.lastSeenAt && (
+                            <span>Last seen at {formatDateTime(user.lastSeenAt)}</span>
+                          )}
+                          {user.lastLoginAt && (
+                            <span>
+                              Logged in at {formatDateTime(user.lastLoginAt)}
+                            </span>
+                          )}
+                        </div>
                       </div>
-                      <div className="log-identity">
-                        <span className="prefix">@</span>
-                        <span className="user">{log.username}</span>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="online-empty-state">
+                    No users are active right now. Live users will appear here automatically.
+                  </div>
+                )}
+              </div>
+
+              <div className="logs-controls card">
+                <div className="logs-controls-top">
+                  <div className="logs-title-group">
+                    <h3>Audit Trail</h3>
+                    <span className="log-count-badge">{filteredLogs.length} shown / {activityLogs.length} total</span>
+                  </div>
+                  <button className="refresh-logs-btn" onClick={handleRefreshLogs}>
+                    🔄 Refresh
+                  </button>
+                </div>
+
+                <div className="log-filter-tabs">
+                  {[
+                    { key: 'all', label: '🌐 All' },
+                    { key: 'session', label: '🟢 Session' },
+                    { key: 'register', label: '✅ Register' },
+                    { key: 'game', label: '🎮 Game' },
+                    { key: 'delete', label: '🗑️ Deleted' },
+                    { key: 'update', label: '✏️ Updated' },
+                    { key: 'password', label: '🔐 Password' },
+                  ].map(f => (
+                    <button
+                      key={f.key}
+                      className={`filter-tab filter-tab-${f.key} ${logFilter === f.key ? 'active' : ''}`}
+                      onClick={() => setLogFilter(f.key)}
+                    >
+                      {f.label}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="log-search-bar">
+                  <span className="search-icon">🔍</span>
+                  <input
+                    type="text"
+                    placeholder="Search by user, email, action or details..."
+                    value={logSearch}
+                    onChange={(e) => setLogSearch(e.target.value)}
+                  />
+                  {logSearch && (
+                    <button className="clear-search-btn" onClick={() => setLogSearch('')}>✕</button>
+                  )}
+                </div>
+              </div>
+
+              {/* Log Entries */}
+              <div className="log-entries">
+                {filteredLogs.map((log) => {
+                  const cat = getActionCategory(log.action);
+                  const pt = formatPlaytime(log.metadata?.playtimeSecs || log.metadata?.sessionDurationSecs);
+                  return (
+                    <div key={log._id} className={`log-entry log-cat-${cat}`}>
+
+                      <div className="log-entry-left">
+                        <span className={`action-pill action-pill-${cat}`}>
+                          {getActionIcon(log.action)}{' '}
+                          {formatActionLabel(log.action)}
+                        </span>
+                        <div className="log-actor">
+                          <div className="log-actor-avatar">{log.username?.charAt(0).toUpperCase()}</div>
+                          <div className="log-actor-info">
+                            <span className="log-actor-name">@{log.username}</span>
+                            {log.email && <span className="log-actor-email">{log.email}</span>}
+                          </div>
+                        </div>
                       </div>
-                      <div className="log-payload">
-                        <span className="type">{log.action}</span>
-                        <span className="msg">{log.details}</span>
+
+                      <div className="log-entry-middle">
+                        <p className="log-detail-text">{log.details}</p>
+
+                        {log.targetUsername && (
+                          <div className={`log-target ${cat === 'delete' ? 'log-target-deleted' : ''}`}>
+                            <span className="log-target-label">
+                              {cat === 'delete' ? '🗑️ Deleted:' : 'Acting on:'}
+                            </span>
+                            <span className="log-target-name">@{log.targetUsername}</span>
+                            {log.targetEmail && (
+                              <span className="log-target-email">{log.targetEmail}</span>
+                            )}
+                            {log.metadata?.score !== undefined && (
+                              <span className="log-target-score">🔥 Score: {log.metadata.score}</span>
+                            )}
+                          </div>
+                        )}
+
+                        <div className="log-metadata-chips">
+                          {log.metadata?.finalScore !== undefined && (
+                            <span className="meta-chip chip-score">🔥 {log.metadata.finalScore} pts</span>
+                          )}
+                          {pt && (
+                            <span className="meta-chip chip-time">⏱ {pt}</span>
+                          )}
+                          {log.metadata?.wasOnline && (
+                            <span className="meta-chip chip-online">🟢 Was online</span>
+                          )}
+                          {log.metadata?.changedByAdmin && (
+                            <span className="meta-chip chip-admin">🛡 Admin action</span>
+                          )}
+                          {log.metadata?.carrots > 0 && (
+                            <span className="meta-chip chip-carrots">🥕 {log.metadata.carrots}</span>
+                          )}
+                          {log.metadata?.hearts > 0 && (
+                            <span className="meta-chip chip-hearts">❤️ {log.metadata.hearts}</span>
+                          )}
+                          {log.ipAddress && (
+                            <span className="meta-chip chip-ip">📡 {log.ipAddress}</span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="log-entry-right">
+                        <span className="log-time-rel">{getRelativeTime(log.createdAt)}</span>
+                        <span className="log-time-full">
+                          {new Date(log.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}
+                        </span>
+                        <span className="log-time-clock">
+                          {new Date(log.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
                       </div>
                     </div>
-                  ))}
-                  {activityLogs.length === 0 && <div className="no-logs">System logs are empty.</div>}
-                </div>
+                  );
+                })}
+
+                {filteredLogs.length === 0 && (
+                  <div className="no-logs-state">
+                    <div className="no-logs-icon">📭</div>
+                    <p className="no-logs-title">No audit entries found</p>
+                    <span className="no-logs-sub">
+                      {logFilter !== 'all' || logSearch
+                        ? 'Try adjusting your filters'
+                        : 'User presence and security events will appear here once recorded'}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -331,7 +637,7 @@ const AdminDashboard = () => {
               </div>
               <button className="close-btn" onClick={() => setIsModalOpen(false)}>&times;</button>
             </div>
-            
+
             <form onSubmit={handleUpdateUser}>
               <div className="form-sections">
                 <div className="form-section">
@@ -340,10 +646,10 @@ const AdminDashboard = () => {
                     <label>System Username</label>
                     <div className="input-wrapper">
                       <span className="input-icon">@</span>
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         value={formData.username}
-                        onChange={(e) => setFormData({...formData, username: e.target.value})}
+                        onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                         required
                         placeholder="Enter username"
                       />
@@ -358,10 +664,10 @@ const AdminDashboard = () => {
                       <label>Lifetime Score</label>
                       <div className="input-wrapper">
                         <span className="input-icon">🔥</span>
-                        <input 
-                          type="number" 
+                        <input
+                          type="number"
                           value={formData.score}
-                          onChange={(e) => setFormData({...formData, score: parseInt(e.target.value) || 0})}
+                          onChange={(e) => setFormData({ ...formData, score: parseInt(e.target.value) || 0 })}
                           required
                         />
                       </div>
@@ -370,10 +676,10 @@ const AdminDashboard = () => {
                       <label>Admin Privilege</label>
                       <div className="switch-wrapper">
                         <label className="switch">
-                          <input 
-                            type="checkbox" 
+                          <input
+                            type="checkbox"
                             checked={formData.isAdmin}
-                            onChange={(e) => setFormData({...formData, isAdmin: e.target.checked})}
+                            onChange={(e) => setFormData({ ...formData, isAdmin: e.target.checked })}
                           />
                           <span className="slider round"></span>
                         </label>
@@ -381,16 +687,16 @@ const AdminDashboard = () => {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="form-row">
                     <div className="form-group">
                       <label>Fruits (Carrots)</label>
                       <div className="input-wrapper">
                         <span className="input-icon">🥕</span>
-                        <input 
-                          type="number" 
+                        <input
+                          type="number"
                           value={formData.carrots}
-                          onChange={(e) => setFormData({...formData, carrots: parseInt(e.target.value) || 0})}
+                          onChange={(e) => setFormData({ ...formData, carrots: parseInt(e.target.value) || 0 })}
                         />
                       </div>
                     </div>
@@ -398,10 +704,10 @@ const AdminDashboard = () => {
                       <label>Hearts Remaining</label>
                       <div className="input-wrapper">
                         <span className="input-icon">❤️</span>
-                        <input 
-                          type="number" 
+                        <input
+                          type="number"
                           value={formData.hearts}
-                          onChange={(e) => setFormData({...formData, hearts: parseInt(e.target.value) || 0})}
+                          onChange={(e) => setFormData({ ...formData, hearts: parseInt(e.target.value) || 0 })}
                         />
                       </div>
                     </div>

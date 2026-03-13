@@ -16,21 +16,24 @@ export const registerUser = createAsyncThunk(
       const response = await axios.post(`${API_URL}`, userData);
       console.log('Registration response:', response.data);
       // Do NOT save to local storage yet, because they are not verified
-      return response.data; 
+      return response.data;
     } catch (error) {
       console.error('Registration error:', error);
       console.error('Error response:', error.response?.data);
       console.error('Error response message:', error.response?.data?.message);
       console.error('Error response error:', error.response?.data?.error);
-      
-      // Extract the actual error message from the backend
-      const errorMessage = 
-        error.response?.data?.message || 
-        error.response?.data?.error || 
-        error.message || 
+
+      const responseData = error.response?.data;
+
+      const normalizedErrorMessage = typeof responseData === 'string'
+        ? responseData
+        : responseData?.message ||
+        responseData?.error?.message ||
+        responseData?.error ||
+        error.message ||
         'Registration failed';
-      
-      return rejectWithValue(errorMessage);
+
+      return rejectWithValue(normalizedErrorMessage);
     }
   }
 );
@@ -213,19 +216,19 @@ export const fetchActivityLogs = createAsyncThunk(
 );
 
 const userHelpers = (builder, thunk) => {
-    builder
-      .addCase(thunk.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(thunk.fulfilled, (state, action) => {
-        state.loading = false;
-        state.currentUser = action.payload;
-      })
-      .addCase(thunk.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload || action.error.message;
-      });
+  builder
+    .addCase(thunk.pending, (state) => {
+      state.loading = true;
+      state.error = null;
+    })
+    .addCase(thunk.fulfilled, (state, action) => {
+      state.loading = false;
+      state.currentUser = action.payload;
+    })
+    .addCase(thunk.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.payload || action.error.message;
+    });
 };
 
 const initialState = {
@@ -290,7 +293,7 @@ const userSlice = createSlice({
     userHelpers(builder, updateScore);
     userHelpers(builder, reduceAttempts);
     userHelpers(builder, resetGame);
-    
+
     // Admin Handlers
     builder
       .addCase(fetchAllUsers.fulfilled, (state, action) => {
@@ -298,7 +301,7 @@ const userSlice = createSlice({
         state.loading = false;
       })
       .addCase(adminUpdateUser.fulfilled, (state, action) => {
-        state.adminUsers = state.adminUsers.map(u => 
+        state.adminUsers = state.adminUsers.map(u =>
           u._id === action.payload._id ? action.payload : u
         );
         state.loading = false;

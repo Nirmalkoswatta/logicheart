@@ -17,9 +17,24 @@ const Game = () => {
     const navigate = useNavigate();
 
     const DIFFICULTY_CONFIG = {
-        easy: { label: 'Easy', secondsPerQuestion: 15 },
-        medium: { label: 'Medium', secondsPerQuestion: 10 },
-        hard: { label: 'Hard', secondsPerQuestion: 5 },
+        easy: {
+            label: 'Easy',
+            secondsPerQuestion: 15,
+            hint: 'Relaxed pace for warm up',
+            icon: '🟢',
+        },
+        medium: {
+            label: 'Medium',
+            secondsPerQuestion: 10,
+            hint: 'Balanced challenge and speed',
+            icon: '🟡',
+        },
+        hard: {
+            label: 'Hard',
+            secondsPerQuestion: 5,
+            hint: 'Fast mode for sharp focus',
+            icon: '🔴',
+        },
     };
 
     const [questionImage, setQuestionImage] = useState(null);
@@ -170,6 +185,26 @@ const Game = () => {
         fetchQuestion();
     };
 
+    const handleChangeLevel = async () => {
+        if (!currentUser) return;
+
+        if (currentUser.attempts <= 0) {
+            const result = await dispatch(resetGame(currentUser._id));
+            if (result.meta.requestStatus !== 'fulfilled') {
+                return;
+            }
+        }
+
+        setFeedback(null);
+        setQuestionImage(null);
+        setInputCarrots('');
+        setInputHearts('');
+        setDifficulty(null);
+        setTimeLeft(0);
+        setGameEnded(false);
+        setGameOverReason(null);
+    };
+
     const handleSubmit = (e) => {
         e.preventDefault();
         if (inputCarrots === '' || inputHearts === '') return;
@@ -183,7 +218,7 @@ const Game = () => {
             console.log('=== Correct Answer - Updating Score ===');
             console.log('Current difficulty:', difficulty);
             console.log('Points to add:', 10);
-            
+
             setFeedback({ type: 'success', message: 'Correct! Great counting!' });
             playSoundEffect(correctGuessSound);
             dispatch(updateScore({
@@ -210,31 +245,63 @@ const Game = () => {
     if (!currentUser) return null;
 
     if (gameEnded || currentUser.attempts <= 0) {
+        const gameOverIcon = gameOverReason === 'timeout' ? '⏳' : '💔';
+        const gameOverBadge = gameOverReason === 'timeout' ? 'Time expired' : 'Attempts exhausted';
+
         return (
-            <div className="game-container">
-                <div className="game-content">
-                    <h2 className="game-header">Game Over</h2>
-                    <p className="game-over-reason">
-                        {gameOverReason === 'timeout' ? 'Time Out!' : 'No attempts left!'}
-                    </p>
-                    <div className="game-stats">
-                        <div className="stat-item">
-                            <span className="stat-label">Final Score</span>
-                            <span className="stat-value">{currentUser.score}</span>
+            <div className="game-container game-container--gameover">
+                <div className="game-content game-content--gameover">
+                    <div className="game-over-panel">
+                        <div className="game-over-emblem" aria-hidden="true">{gameOverIcon}</div>
+                        <span className={`game-over-badge ${gameOverReason === 'timeout' ? 'timeout' : 'attempts'}`}>
+                            {gameOverBadge}
+                        </span>
+
+                        <h2 className="game-over-title">Game Over</h2>
+                        <p className="game-over-reason">
+                            {gameOverReason === 'timeout' ? 'Time Out!' : 'No attempts left!'}
+                        </p>
+
+                        <div className="game-over-summary">
+                            <div className="game-over-card game-over-card--score">
+                                <span className="game-over-label">Final Score</span>
+                                <span className="game-over-value">{currentUser.score}</span>
+                            </div>
+                            <div className="game-over-card">
+                                <span className="game-over-label">Mode</span>
+                                <span className="game-over-value game-over-value--small">
+                                    {difficulty ? DIFFICULTY_CONFIG[difficulty].label : 'Classic'}
+                                </span>
+                            </div>
+                            <div className="game-over-card">
+                                <span className="game-over-label">Attempts Left</span>
+                                <span className="game-over-value game-over-value--small">{currentUser.attempts}</span>
+                            </div>
                         </div>
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '2rem' }}>
-                        <button
-                            className="submit-btn"
-                            onClick={handlePlayAgain}
-                            style={{ background: '#2dce89' }}
-                        >
-                            Play Again
-                        </button>
-                        <button className="secondary-btn" onClick={() => setDifficulty(null)}>
-                            Change Level
-                        </button>
-                        <button className="back-btn" onClick={() => navigate('/home')}>Return Home</button>
+
+                        <div className="game-over-actions">
+                            <button
+                                type="button"
+                                className="submit-btn game-over-primary"
+                                onClick={handlePlayAgain}
+                            >
+                                Play Again
+                            </button>
+                            <button
+                                type="button"
+                                className="secondary-btn game-over-secondary"
+                                onClick={handleChangeLevel}
+                            >
+                                Change Level
+                            </button>
+                            <button
+                                type="button"
+                                className="game-over-link"
+                                onClick={() => navigate('/home')}
+                            >
+                                Return Home
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -278,12 +345,25 @@ const Game = () => {
                 <main>
                     {!difficulty ? (
                         <div className="difficulty-select">
-                            <h3 className="difficulty-title">Choose your level</h3>
-                            <p className="difficulty-subtitle">Easy gives more time, Hard gives less time.</p>
+                            <div className="difficulty-head">
+                                <h3 className="difficulty-title">Choose your level</h3>
+                                <p className="difficulty-subtitle">Easy gives more time, Hard gives less time.</p>
+                            </div>
+
                             <div className="difficulty-actions">
-                                <button className="difficulty-btn easy" onClick={() => startGame('easy')}>Easy</button>
-                                <button className="difficulty-btn medium" onClick={() => startGame('medium')}>Medium</button>
-                                <button className="difficulty-btn hard" onClick={() => startGame('hard')}>Hard</button>
+                                {Object.entries(DIFFICULTY_CONFIG).map(([key, config]) => (
+                                    <button
+                                        key={key}
+                                        type="button"
+                                        className={`difficulty-btn ${key}`}
+                                        onClick={() => startGame(key)}
+                                    >
+                                        <span className="difficulty-emoji">{config.icon}</span>
+                                        <span className="difficulty-name">{config.label}</span>
+                                        <span className="difficulty-meta">{config.secondsPerQuestion}s per puzzle</span>
+                                        <span className="difficulty-hint">{config.hint}</span>
+                                    </button>
+                                ))}
                             </div>
                         </div>
                     ) : (
